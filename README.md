@@ -6,7 +6,7 @@ qnectdk 백엔드 API 서버 (Spring Boot).
 
 | 항목 | 내용 |
 |------|------|
-| 언어 | Java 17 |
+| 언어 | Java 21 (LTS) |
 | 프레임워크 | Spring Boot 4.1.0 (Web MVC, Data JPA, Security, Validation) |
 | DB | MySQL 8 |
 | 빌드 | Gradle (Wrapper 포함) |
@@ -18,7 +18,7 @@ qnectdk 백엔드 API 서버 (Spring Boot).
 
 | 도구 | 비고 |
 |------|------|
-| **JDK 17** | IntelliJ는 17만 있으면 됨. VSCode는 언어 서버 구동용으로 JDK 21도 권장 (프로젝트 컴파일은 Gradle 툴체인이 17로 처리) |
+| **JDK 21** (LTS) | IntelliJ·VSCode 공통. 프로젝트 컴파일과 VSCode 언어 서버 모두 21 사용 |
 | **Docker Desktop** | MySQL 컨테이너 실행용. 백그라운드(트레이)에 떠 있어야 `docker compose` 동작 |
 | **Git** | |
 
@@ -53,7 +53,7 @@ docker compose up -d
 #### IntelliJ IDEA
 1. **Annotation Processing 켜기** — `Settings → Build, Execution, Deployment → Compiler → Annotation Processors → ☑ Enable annotation processing`
 2. Lombok 플러그인은 2020.3+ 기본 번들 (별도 설치 불필요)
-3. `Settings → Build Tools → Gradle → Gradle JVM` 을 17로 설정
+3. `Settings → Build Tools → Gradle → Gradle JVM` 을 21로 설정
 
 #### VS Code
 1. 확장 설치: **Extension Pack for Java**, **Spring Boot Extension Pack**, **Gradle for Java**, **Lombok Annotations Support**
