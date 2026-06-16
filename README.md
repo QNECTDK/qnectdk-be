@@ -19,7 +19,8 @@ qnectdk 백엔드 API 서버 (Spring Boot).
 | 도구 | 비고 |
 |------|------|
 | **JDK 21** (LTS) | IntelliJ·VSCode 공통. 프로젝트 컴파일과 VSCode 언어 서버 모두 21 사용 |
-| **Docker Desktop** | MySQL 컨테이너 실행용. 백그라운드(트레이)에 떠 있어야 `docker compose` 동작 |
+| **MySQL 8** | 실제 필요한 건 MySQL 서버. 로컬/원격에 이미 있으면 그대로 사용 가능 |
+| Docker Desktop *(선택)* | MySQL이 없을 때 `docker compose`로 띄우는 편의 수단. 본인 MySQL을 쓰면 불필요 |
 | **Git** | |
 
 ## 빠른 시작
@@ -32,8 +33,12 @@ cd qnectdk-be
 # 2. 환경 변수 (선택 — 생략 시 기본값으로 동작)
 cp .env.example .env        # .env 에서 비밀번호 등 수정
 
-# 3. MySQL 기동 (qnectdk DB 자동 생성)
+# 3. MySQL 준비 — 둘 중 하나
+#   (A) Docker 사용: 아래 한 줄이면 qnectdk DB까지 자동 생성
 docker compose up -d
+#   (B) 본인 MySQL 사용: docker 생략하고, DB를 직접 만든 뒤 .env를 자기 접속정보로 맞춤
+#       CREATE DATABASE qnectdk CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+#       (테이블은 Hibernate가 ddl-auto=update로 생성. DB/스키마만 미리 있으면 됨)
 
 # 4. 앱 실행
 ./gradlew bootRun           # 또는 IDE에서 QnectdkApplication 실행
