@@ -1,0 +1,30 @@
+# 로컬 개발용 MySQL. Docker Desktop에서 바로 동작.
+#   띄우기:  docker compose up -d
+#   끄기:    docker compose down
+#   초기화:  docker compose down -v   (데이터 볼륨까지 삭제)
+#
+# 비밀번호/DB명은 같은 폴더의 .env 값을 자동으로 읽습니다(없으면 기본값 사용).
+# application.yml 의 기본 fallback 값과 맞춰져 있어, .env 없이도 바로 접속됩니다.
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: qnectdk-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: qnectdk
+      MYSQL_ROOT_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-password}
+    ports:
+      - "3306:3306"
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - qnectdk-mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${SPRING_DATASOURCE_PASSWORD:-password}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  qnectdk-mysql-data:
