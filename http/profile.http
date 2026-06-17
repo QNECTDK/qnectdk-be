@@ -14,9 +14,9 @@ Content-Type: application/json
   "password": "{{password}}"
 }
 
-### 내 프로필 생성 (온보딩) → 201
-# @name createProfile
-POST {{baseUrl}}/api/profiles
+### 프로필 업서트 (온보딩·수정 공용) — 없으면 생성, 있으면 교체
+# @name upsertProfile
+PUT {{baseUrl}}/api/profiles/me
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 Content-Type: application/json
 
@@ -28,11 +28,11 @@ Content-Type: application/json
   "favoriteFood": "치킨"
 }
 
-### 내 프로필 조회 (age·zodiac 계산 포함)
+### 내 프로필 조회 (프로필 없으면 기본정보 name/age/zodiac + profileCompleted:false)
 GET {{baseUrl}}/api/profiles/me
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
-### 내 프로필 수정
+### 프로필 수정 (동일 PUT 업서트, 값만 변경)
 PUT {{baseUrl}}/api/profiles/me
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 Content-Type: application/json
@@ -61,8 +61,8 @@ Content-Type: image/png
 GET {{baseUrl}}/api/profiles/me/share
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
-### QR 스캔: 공유 코드로 상대 프로필 조회 (생성 응답의 publicCode 사용)
-GET {{baseUrl}}/api/profiles/{{createProfile.response.body.$.data.publicCode}}
+### QR 스캔: 공유 코드로 상대 프로필 조회 (업서트 응답의 publicCode 사용)
+GET {{baseUrl}}/api/profiles/{{upsertProfile.response.body.$.data.publicCode}}
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 ### (보안) refresh 토큰을 access 처럼 사용 → 401 이어야 함

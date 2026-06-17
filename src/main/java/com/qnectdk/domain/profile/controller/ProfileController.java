@@ -9,7 +9,6 @@ import com.qnectdk.global.response.ApiResponse;
 import com.qnectdk.global.security.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,7 +18,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -30,24 +28,17 @@ public class ProfileController {
 
     private final ProfileService profileService;
 
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public ApiResponse<ProfileResponse> create(
-            @AuthenticationPrincipal CustomUserDetails user,
-            @Valid @RequestBody ProfileRequest request) {
-        return ApiResponse.ok(profileService.create(user.getUserId(), request));
-    }
-
     @GetMapping("/me")
     public ApiResponse<ProfileResponse> getMine(@AuthenticationPrincipal CustomUserDetails user) {
         return ApiResponse.ok(profileService.getMine(user.getUserId()));
     }
 
+    // 온보딩·수정 공용 업서트: 없으면 생성, 있으면 교체
     @PutMapping("/me")
-    public ApiResponse<ProfileResponse> update(
+    public ApiResponse<ProfileResponse> upsert(
             @AuthenticationPrincipal CustomUserDetails user,
             @Valid @RequestBody ProfileRequest request) {
-        return ApiResponse.ok(profileService.update(user.getUserId(), request));
+        return ApiResponse.ok(profileService.upsert(user.getUserId(), request));
     }
 
     @PostMapping(value = "/me/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

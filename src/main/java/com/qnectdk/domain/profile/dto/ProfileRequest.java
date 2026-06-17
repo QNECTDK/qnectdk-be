@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 /**
- * 프로필 생성(POST)/수정(PUT) 공용 요청. 두 작업의 입력 형태가 동일하다.
+ * 프로필 업서트(PUT /api/profiles/me) 요청. 온보딩·수정 공용.
  */
 public record ProfileRequest(
 
