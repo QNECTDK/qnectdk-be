@@ -1,0 +1,60 @@
+# 먼저 auth.http 의 "로그인"을 실행해 accessToken 을 캡처한 뒤 사용하세요.
+
+### 내 프로필 생성 (온보딩) → 201
+POST {{baseUrl}}/api/profiles
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "school": "국민대학교",
+  "gender": "MALE",
+  "mbti": "ENFP",
+  "drinkLevel": "소주 3잔",
+  "favoriteFood": "치킨"
+}
+
+> {% client.global.set("publicCode", response.body.data.publicCode); %}
+
+### 내 프로필 조회 (age·zodiac 계산 포함)
+GET {{baseUrl}}/api/profiles/me
+Authorization: Bearer {{accessToken}}
+
+### 내 프로필 수정
+PUT {{baseUrl}}/api/profiles/me
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "school": "국민대학교",
+  "gender": "MALE",
+  "mbti": "INTJ",
+  "drinkLevel": "안 마심",
+  "favoriteFood": "초밥"
+}
+
+### 프로필 이미지 업로드 (multipart) — 같은 폴더의 실제 이미지 파일로 교체
+POST {{baseUrl}}/api/profiles/me/image
+Authorization: Bearer {{accessToken}}
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="image"; filename="profile.png"
+Content-Type: image/png
+
+< ./sample.png
+--WebAppBoundary--
+
+### 내 공유 코드/URL 조회
+GET {{baseUrl}}/api/profiles/me/share
+Authorization: Bearer {{accessToken}}
+
+### QR 스캔: 공유 코드로 상대 프로필 조회 (생성 응답에서 캡처한 publicCode 사용)
+GET {{baseUrl}}/api/profiles/{{publicCode}}
+Authorization: Bearer {{accessToken}}
+
+### (보안) refresh 토큰을 access 처럼 사용 → 401 이어야 함
+GET {{baseUrl}}/api/profiles/me
+Authorization: Bearer {{refreshToken}}
+
+### (보안) 토큰 없이 접근 → 401 ApiResponse
+GET {{baseUrl}}/api/profiles/me

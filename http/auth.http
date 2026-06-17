@@ -1,0 +1,68 @@
+### 회원가입
+POST {{baseUrl}}/api/auth/signup
+Content-Type: application/json
+
+{
+  "phone": "{{phone}}",
+  "password": "{{password}}",
+  "name": "테스트",
+  "birthDate": "2003-05-01"
+}
+
+### 전화번호 중복 확인 (available: false 면 이미 가입됨)
+GET {{baseUrl}}/api/auth/check-phone?phone={{phone}}
+
+### 로그인 → access/refresh 토큰 캡처
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "phone": "{{phone}}",
+  "password": "{{password}}"
+}
+
+> {%
+client.global.set("accessToken", response.body.data.accessToken);
+client.global.set("refreshToken", response.body.data.refreshToken);
+%}
+
+### 토큰 재발급 (refresh 회전 — 이후 새 토큰으로 갱신됨)
+POST {{baseUrl}}/api/auth/reissue
+Content-Type: application/json
+
+{
+  "refreshToken": "{{refreshToken}}"
+}
+
+> {%
+client.global.set("accessToken", response.body.data.accessToken);
+client.global.set("refreshToken", response.body.data.refreshToken);
+%}
+
+### 로그아웃 (refresh 토큰 폐기)
+POST {{baseUrl}}/api/auth/logout
+Content-Type: application/json
+
+{
+  "refreshToken": "{{refreshToken}}"
+}
+
+### (검증) 잘못된 입력 → 400 + 필드별 에러
+POST {{baseUrl}}/api/auth/signup
+Content-Type: application/json
+
+{
+  "phone": "123",
+  "password": "short",
+  "name": "",
+  "birthDate": "2999-01-01"
+}
+
+### (검증) 없는 번호/틀린 비번 → 401 INVALID_CREDENTIALS (동일 메시지)
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "phone": "01000000000",
+  "password": "wrongpass1"
+}
