@@ -40,4 +40,25 @@ public class Friendship {
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    // --- 도메인 메서드 ---
+
+    // JPA가 못 쓰니 빌더 대신 정적 팩토리로 생성
+    public static Friendship request(Long requesterId, Long addresseeId) {
+        Friendship f = new Friendship();
+        f.requesterId = requesterId;
+        f.addresseeId = addresseeId;
+        f.status = FriendshipStatus.PENDING;
+        f.createdAt = LocalDateTime.now();
+        return f;
+    }
+
+    public void accept() {
+        this.status = FriendshipStatus.ACCEPTED;
+        this.acceptedAt = LocalDateTime.now();
+    }
+
+    public void reject() {
+        this.status = FriendshipStatus.REJECTED;
+    }
 }

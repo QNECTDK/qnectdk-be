@@ -33,4 +33,20 @@ public class FriendMemo {
 
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt = LocalDateTime.now();
+
+    // --- 도메인 메서드 ---
+
+    public static FriendMemo create(Long ownerId, Long friendId, String content) {
+        FriendMemo m = new FriendMemo();
+        m.ownerId = ownerId;
+        m.friendId = friendId;
+        m.content = content;
+        m.updatedAt = LocalDateTime.now();
+        return m;
+    }
+
+    public void updateContent(String content) {
+        this.content = content;
+        this.updatedAt = LocalDateTime.now();
+    }
 }
