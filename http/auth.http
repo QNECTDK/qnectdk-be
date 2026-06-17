@@ -29,7 +29,7 @@ Content-Type: application/json
 }
 
 ### 토큰 재발급 (직전 로그인 응답의 refreshToken 사용)
-POST {{baseUrl}}/api/auth/reissue
+POST {{baseUrl}}/api/auth/refresh
 Content-Type: application/json
 
 {

@@ -3,9 +3,8 @@ package com.qnectdk.domain.user.controller;
 import com.qnectdk.domain.user.dto.CheckLoginIdResponse;
 import com.qnectdk.domain.user.dto.LoginRequest;
 import com.qnectdk.domain.user.dto.LogoutRequest;
-import com.qnectdk.domain.user.dto.ReissueRequest;
+import com.qnectdk.domain.user.dto.RefreshRequest;
 import com.qnectdk.domain.user.dto.SignupRequest;
-import com.qnectdk.domain.user.dto.SignupResponse;
 import com.qnectdk.domain.user.dto.TokenResponse;
 import com.qnectdk.domain.user.service.AuthService;
 import com.qnectdk.global.response.ApiResponse;
@@ -29,7 +28,7 @@ public class AuthController {
 
     @PostMapping("/signup")
     @ResponseStatus(HttpStatus.CREATED)
-    public ApiResponse<SignupResponse> signup(@Valid @RequestBody SignupRequest request) {
+    public ApiResponse<TokenResponse> signup(@Valid @RequestBody SignupRequest request) {
         return ApiResponse.ok(authService.signup(request));
     }
 
@@ -43,9 +42,9 @@ public class AuthController {
         return ApiResponse.ok(authService.login(request));
     }
 
-    @PostMapping("/reissue")
-    public ApiResponse<TokenResponse> reissue(@Valid @RequestBody ReissueRequest request) {
-        return ApiResponse.ok(authService.reissue(request.refreshToken()));
+    @PostMapping("/refresh")
+    public ApiResponse<TokenResponse> refresh(@Valid @RequestBody RefreshRequest request) {
+        return ApiResponse.ok(authService.refresh(request.refreshToken()));
     }
 
     @PostMapping("/logout")

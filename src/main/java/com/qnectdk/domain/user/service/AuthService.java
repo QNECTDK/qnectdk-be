@@ -2,7 +2,6 @@ package com.qnectdk.domain.user.service;
 
 import com.qnectdk.domain.user.dto.LoginRequest;
 import com.qnectdk.domain.user.dto.SignupRequest;
-import com.qnectdk.domain.user.dto.SignupResponse;
 import com.qnectdk.domain.user.dto.TokenResponse;
 import com.qnectdk.domain.user.entity.RefreshToken;
 import com.qnectdk.domain.user.entity.User;
@@ -34,7 +33,7 @@ public class AuthService {
     private final PublicCodeGenerator publicCodeGenerator;
 
     @Transactional
-    public SignupResponse signup(SignupRequest request) {
+    public TokenResponse signup(SignupRequest request) {
         if (userRepository.existsByLoginId(request.loginId())) {
             throw new BusinessException(ErrorCode.DUPLICATE_LOGIN_ID);
         }
@@ -48,7 +47,8 @@ public class AuthService {
                 request.name(),
                 request.birthDate(),
                 generateUniquePublicCode());
-        return SignupResponse.from(userRepository.save(user));
+        User saved = userRepository.save(user);
+        return issueTokens(saved.getId()); // 가입 즉시 로그인 상태(토큰 발급)
     }
 
     public boolean isLoginIdAvailable(String loginId) {
@@ -69,7 +69,7 @@ public class AuthService {
     }
 
     @Transactional
-    public TokenResponse reissue(String refreshToken) {
+    public TokenResponse refresh(String refreshToken) {
         RefreshToken saved = refreshTokenRepository.findByToken(refreshToken)
                 .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_TOKEN));
         // 회전: 제시된 토큰은 성공/실패와 무관하게 즉시 폐기

@@ -2,7 +2,7 @@ package com.qnectdk.domain.user.dto;
 
 import jakarta.validation.constraints.NotBlank;
 
-public record ReissueRequest(
+public record RefreshRequest(
 
         @NotBlank
         String refreshToken
