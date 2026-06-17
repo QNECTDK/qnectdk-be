@@ -1,0 +1,170 @@
+# 퀴즈 API 수동 테스트 (REST Client)
+# 흐름: owner 가 퀴즈 생성/편집 → friend 가 조회/응시. friend 는 프로필이 완성돼야 응시 가능.
+# 같은 파일에서 위에서부터 순서대로 실행하세요(요청 간 응답 참조).
+
+@baseUrl = http://localhost:8080
+
+@ownerLoginId = quizowner01
+@friendLoginId = quizfriend01
+@password = test1234
+
+### (준비) owner 회원가입 — 이미 있으면 409(무시)
+POST {{baseUrl}}/api/auth/signup
+Content-Type: application/json
+
+{
+  "loginId": "{{ownerLoginId}}",
+  "phone": "01088880001",
+  "password": "{{password}}",
+  "name": "퀴즈주인",
+  "birthDate": "2002-03-10"
+}
+
+### (준비) friend 회원가입 — 이미 있으면 409(무시)
+POST {{baseUrl}}/api/auth/signup
+Content-Type: application/json
+
+{
+  "loginId": "{{friendLoginId}}",
+  "phone": "01088880002",
+  "password": "{{password}}",
+  "name": "푸는친구",
+  "birthDate": "2001-07-22"
+}
+
+### owner 로그인
+# @name ownerLogin
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{ "loginId": "{{ownerLoginId}}", "password": "{{password}}" }
+
+### owner 프로필 작성(생성 품질↑) — owner 의 userId 도 여기서 얻는다
+# @name ownerProfile
+PUT {{baseUrl}}/api/profiles/me
+Authorization: Bearer {{ownerLogin.response.body.$.data.accessToken}}
+Content-Type: application/json
+
+{
+  "school": "동국대학교",
+  "gender": "MALE",
+  "mbti": "ENFP",
+  "drinkLevel": "소주 1병",
+  "favoriteFood": "삼겹살"
+}
+
+### owner: AI 문제 "초안" 생성 (count=3) → 200, 초안 배열(저장 안 됨)
+# 클라이언트가 이 초안을 "내 퀴즈 목록"에 추가/편집한 뒤 아래 PUT 으로 저장한다(서버는 덮어쓰지 않음).
+# 리마인드(REMIND) 재생성은 B 의 스케줄러가 서버에서 직접 호출(QuizService.generateReminderQuiz) — 사용자 호출 아님.
+# @name generate
+POST {{baseUrl}}/api/quizzes/me/generate?type=FIRST_MEET&count=3
+Authorization: Bearer {{ownerLogin.response.body.$.data.accessToken}}
+
+### owner: 내 퀴즈 조회(편집 뷰, 정답 포함) — 아직 저장 전이면 404(QUIZ_NOT_FOUND)
+GET {{baseUrl}}/api/quizzes/me
+Authorization: Bearer {{ownerLogin.response.body.$.data.accessToken}}
+
+### owner: 퀴즈 저장(수동 작성 + AI 초안 합쳐서, 문항 3~5개 / 객관식 보기 2~4개) — 내 퀴즈 전체 저장
+PUT {{baseUrl}}/api/quizzes/me
+PUT {{baseUrl}}/api/quizzes/me
+Authorization: Bearer {{ownerLogin.response.body.$.data.accessToken}}
+Content-Type: application/json
+
+{
+  "questions": [
+    {
+      "type": "MULTIPLE",
+      "content": "내가 제일 좋아하는 음식은?",
+      "correctAnswer": "삼겹살",
+      "required": true,
+      "options": [
+        { "content": "삼겹살", "correct": true },
+        { "content": "초밥", "correct": false },
+        { "content": "파스타", "correct": false },
+        { "content": "떡볶이", "correct": false }
+      ]
+    },
+    {
+      "type": "OX",
+      "content": "나는 소주 1병을 마실 수 있다",
+      "correctAnswer": "O",
+      "required": false,
+      "options": []
+    },
+    {
+      "type": "MULTIPLE",
+      "content": "내 MBTI는?",
+      "correctAnswer": "ENFP",
+      "required": false,
+      "options": [
+        { "content": "ENFP", "correct": true },
+        { "content": "ISTJ", "correct": false },
+        { "content": "INFJ", "correct": false },
+        { "content": "ESTP", "correct": false }
+      ]
+    }
+  ]
+}
+
+### (검증) 문항 2개만 → 400 INVALID_INPUT(@Size min 3) 또는 QUIZ_INVALID_CONTENT
+PUT {{baseUrl}}/api/quizzes/me
+Authorization: Bearer {{ownerLogin.response.body.$.data.accessToken}}
+Content-Type: application/json
+
+{
+  "questions": [
+    { "type": "OX", "content": "문항1", "correctAnswer": "O", "required": false, "options": [] },
+    { "type": "OX", "content": "문항2", "correctAnswer": "X", "required": false, "options": [] }
+  ]
+}
+
+### friend 로그인
+# @name friendLogin
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{ "loginId": "{{friendLoginId}}", "password": "{{password}}" }
+
+### friend 프로필 작성(응시 조건: 완성돼야 함)
+PUT {{baseUrl}}/api/profiles/me
+Authorization: Bearer {{friendLogin.response.body.$.data.accessToken}}
+Content-Type: application/json
+
+{
+  "school": "국민대학교",
+  "gender": "FEMALE",
+  "mbti": "INFJ",
+  "drinkLevel": "맥주 2잔",
+  "favoriteFood": "초밥"
+}
+
+### friend: owner 퀴즈 조회(푸는 화면, 정답 미노출). solvable=true 여야 함
+# @name solvable
+GET {{baseUrl}}/api/quizzes/owner/{{ownerProfile.response.body.$.data.userId}}
+Authorization: Bearer {{friendLogin.response.body.$.data.accessToken}}
+
+### friend: 응시·채점 → 201, 점수 + 문항별 정/오답
+# 주의: answer 의 questionId 는 위 "owner 퀴즈 조회" 응답의 questionId 로 바꾸세요(자동참조 불가).
+# @name attempt
+POST {{baseUrl}}/api/quizzes/owner/{{ownerProfile.response.body.$.data.userId}}/attempts
+Authorization: Bearer {{friendLogin.response.body.$.data.accessToken}}
+Content-Type: application/json
+
+{
+  "answers": [
+    { "questionId": 1, "answer": "삼겹살" },
+    { "questionId": 2, "answer": "o" },
+    { "questionId": 3, "answer": "ENFP" }
+  ]
+}
+
+### friend: 응시 결과 조회(문항별 정/오답)
+GET {{baseUrl}}/api/quizzes/attempts/{{attempt.response.body.$.data.attemptId}}
+Authorization: Bearer {{friendLogin.response.body.$.data.accessToken}}
+
+### (검증) owner 가 자기 퀴즈 조회 → 403 QUIZ_FORBIDDEN
+GET {{baseUrl}}/api/quizzes/owner/{{ownerProfile.response.body.$.data.userId}}
+Authorization: Bearer {{ownerLogin.response.body.$.data.accessToken}}
+
+### (검증) 토큰 없이 → 401
+GET {{baseUrl}}/api/quizzes/me
