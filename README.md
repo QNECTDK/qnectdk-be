@@ -34,10 +34,10 @@ cd qnectdk-be
 cp .env.example .env        # .env 에서 비밀번호 등 수정
 
 # 3. MySQL 준비 — 둘 중 하나
-#   (A) Docker 사용: 아래 한 줄이면 qnectdk DB까지 자동 생성
+#   (A) Docker 사용: 아래 한 줄이면 qnectdb DB까지 자동 생성
 docker compose up -d
 #   (B) 본인 MySQL 사용: docker 생략하고, DB를 직접 만든 뒤 .env를 자기 접속정보로 맞춤
-#       CREATE DATABASE qnectdk CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+#       CREATE DATABASE qnectdb CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 #       (테이블은 Hibernate가 ddl-auto=update로 생성. DB/스키마만 미리 있으면 됨)
 
 # 4. 앱 실행
@@ -74,8 +74,8 @@ docker compose up -d
 | Host | localhost |
 | Port | 3306 |
 | User | root |
-| Password | `.env`의 `SPRING_DATASOURCE_PASSWORD` (기본값 `password`) |
-| Database | qnectdk |
+| Password | `.env`의 `DB_PASSWORD` (기본값 `password`) |
+| Database | qnectdb |
 
 - **IntelliJ Ultimate**: 내장 Database 툴에서 데이터 소스 `+` → **MySQL** 선택 (JDBC 드라이버 자동 다운로드)
 - **그 외**: DBeaver 등 외부 클라이언트. MySQL **네이티브 연결**을 쓰면 되고, JDBC를 직접 설정할 필요 없음
@@ -89,7 +89,7 @@ docker compose down       # 중지
 docker compose down -v    # 데이터 볼륨까지 초기화
 ```
 
-- 데이터는 `qnectdk-mysql-data` 볼륨에 영속됩니다.
+- 데이터는 `qnectdb-mysql-data` 볼륨에 영속됩니다.
 - `restart: unless-stopped` 설정 + Docker Desktop "로그인 시 자동 시작"을 켜두면, 재부팅 후에도 MySQL이 자동 복귀합니다.
 
 ## 환경 변수

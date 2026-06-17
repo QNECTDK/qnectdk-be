@@ -34,7 +34,20 @@ public enum ErrorCode {
 
     // storage
     INVALID_FILE(HttpStatus.BAD_REQUEST, "유효하지 않은 파일입니다."),
-    FILE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "파일 업로드에 실패했습니다.");
+    FILE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "파일 업로드에 실패했습니다."),
+
+    // quiz
+    QUIZ_NOT_FOUND(HttpStatus.NOT_FOUND, "퀴즈를 찾을 수 없습니다."),
+    QUIZ_ATTEMPT_NOT_FOUND(HttpStatus.NOT_FOUND, "퀴즈 응시 기록을 찾을 수 없습니다."),
+    QUIZ_FORBIDDEN(HttpStatus.FORBIDDEN, "해당 퀴즈에 대한 권한이 없습니다."),
+    QUIZ_NOT_SOLVABLE(HttpStatus.FORBIDDEN, "프로필을 먼저 완성해야 퀴즈를 풀 수 있습니다."),
+    QUIZ_INVALID_CONTENT(HttpStatus.BAD_REQUEST, "퀴즈 구성이 올바르지 않습니다."),
+    QUIZ_GENERATION_FAILED(HttpStatus.BAD_GATEWAY, "퀴즈 자동 생성에 실패했습니다."),
+
+    // daily
+    DAILY_QUIZ_NOT_FOUND(HttpStatus.NOT_FOUND, "오늘의 데일리 퀴즈가 없습니다."),
+    DAILY_ALREADY_ANSWERED(HttpStatus.CONFLICT, "이미 오늘의 데일리에 답했습니다."),
+    DAILY_NOT_ANSWERED_YET(HttpStatus.FORBIDDEN, "먼저 답해야 결과를 볼 수 있습니다.");
 
     private final HttpStatus status;
     private final String message;

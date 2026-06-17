@@ -8,6 +8,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
+import java.util.List;
+
 /**
  * 사용자 읽기 전용 조회 API. 타 도메인(profile/interest)이 Long ID로 사용자 정보를 얻는 통로.
  */
@@ -26,5 +29,15 @@ public class UserQueryService {
     public UserSummary getByPublicCode(String publicCode) {
         return UserSummary.from(userRepository.findByPublicCode(publicCode)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND)));
+    }
+
+    /**
+     * 여러 사용자를 한 번의 IN 쿼리로 조회한다(타 도메인의 N+1 방지용 일괄 조회 통로).
+     * 존재하지 않는 id 는 결과에서 생략된다.
+     */
+    public List<UserSummary> getByIds(Collection<Long> userIds) {
+        return userRepository.findAllById(userIds).stream()
+                .map(UserSummary::from)
+                .toList();
     }
 }
