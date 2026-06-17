@@ -26,4 +26,18 @@ public interface FriendshipRepository extends JpaRepository<Friendship, Long> {
             @Param("userId") Long userId,
             @Param("status") FriendshipStatus status
     );
+
+    // 두 사람이 ACCEPTED 친구인지 (방향 무관) — group 멤버 검증용
+    @Query("""
+            select count(f) > 0 from Friendship f
+            where f.status = :status
+              and ((f.requesterId = :a and f.addresseeId = :b)
+                or (f.requesterId = :b and f.addresseeId = :a))
+            """)
+
+    boolean existsAcceptedBetween(
+            @Param("a") Long a,
+            @Param("b") Long b,
+            @Param("status") FriendshipStatus status
+    );
 }

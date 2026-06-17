@@ -33,4 +33,20 @@ public class FriendGroup {
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    // --- 도메인 메서드 ---
+
+    public static FriendGroup create(Long userId, String name, String hashtags) {
+        FriendGroup g = new FriendGroup();
+        g.userId = userId;
+        g.name = name;
+        g.hashtags = hashtags;
+        g.createdAt = LocalDateTime.now();
+        return g;
+    }
+
+    public void update(String name, String hashtags) {
+        this.name = name;
+        this.hashtags = hashtags;
+    }
 }

@@ -25,4 +25,13 @@ public class FriendGroupMember {
 
     @Column(name = "friend_id", nullable = false)
     private Long friendId;
+
+    // --- 도메인 메서드 ---
+
+    public static FriendGroupMember of(Long groupId, Long friendId) {
+        FriendGroupMember m = new FriendGroupMember();
+        m.groupId = groupId;
+        m.friendId = friendId;
+        return m;
+    }
 }
