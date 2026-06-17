@@ -1,0 +1,66 @@
+@baseUrl = http://localhost:8080
+@loginId = tester01
+@phone = 01099990001
+@password = test1234
+
+### 회원가입
+POST {{baseUrl}}/api/auth/signup
+Content-Type: application/json
+
+{
+  "loginId": "{{loginId}}",
+  "phone": "{{phone}}",
+  "password": "{{password}}",
+  "name": "테스트",
+  "birthDate": "2003-05-01"
+}
+
+### 아이디 중복 확인 (available: false 면 이미 사용 중)
+GET {{baseUrl}}/api/auth/check-login-id?loginId={{loginId}}
+
+### 로그인 → 이후 요청에서 {{login.response.body.$.data.accessToken}} 로 참조
+# @name login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "loginId": "{{loginId}}",
+  "password": "{{password}}"
+}
+
+### 토큰 재발급 (직전 로그인 응답의 refreshToken 사용)
+POST {{baseUrl}}/api/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{login.response.body.$.data.refreshToken}}"
+}
+
+### 로그아웃 (refresh 토큰 폐기)
+POST {{baseUrl}}/api/auth/logout
+Content-Type: application/json
+
+{
+  "refreshToken": "{{login.response.body.$.data.refreshToken}}"
+}
+
+### (검증) 잘못된 입력 → 400 + 필드별 에러
+POST {{baseUrl}}/api/auth/signup
+Content-Type: application/json
+
+{
+  "loginId": "1A",
+  "phone": "123",
+  "password": "short",
+  "name": "",
+  "birthDate": "2999-01-01"
+}
+
+### (검증) 없는 아이디/틀린 비번 → 401 INVALID_CREDENTIALS
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "loginId": "nouser01",
+  "password": "wrongpass1"
+}

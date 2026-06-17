@@ -15,9 +15,15 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
+    open-in-view: false
     properties:
       hibernate:
         format_sql: true
+
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
 
 server:
   port: 8080
@@ -33,3 +39,19 @@ springdoc:
   swagger-ui:
     enabled: true
 
+# 애플리케이션 커스텀 설정 (A 소유). 값은 .env로 주입, 없으면 아래 fallback 사용.
+app:
+  jwt:
+    # HS 서명용 시크릿. 커밋된 기본값을 두지 않는다(노출 시 토큰 위조 가능).
+    # 반드시 환경변수/.env의 JWT_SECRET으로 주입. 미설정 시 기동 실패(fail-fast). 최소 32바이트.
+    secret: ${JWT_SECRET}
+    access-token-validity-ms: ${JWT_ACCESS_VALIDITY_MS:3600000}        # 1시간
+    refresh-token-validity-ms: ${JWT_REFRESH_VALIDITY_MS:1209600000}   # 14일
+  storage:
+    # 프로필 이미지 저장소. S3 설정 전까지 로컬 파일 저장으로 대체.
+    local:
+      base-path: ${STORAGE_LOCAL_PATH:./uploads}
+      base-url: ${STORAGE_BASE_URL:http://localhost:8080/files}
+  share:
+    # QR/공유 URL 생성용 base. 예: https://{base}/{publicCode}
+    base-url: ${SHARE_BASE_URL:https://qnect.app}
