@@ -1,0 +1,56 @@
+package com.qnectdk.domain.user.controller;
+
+import com.qnectdk.domain.user.dto.CheckPhoneResponse;
+import com.qnectdk.domain.user.dto.LoginRequest;
+import com.qnectdk.domain.user.dto.LogoutRequest;
+import com.qnectdk.domain.user.dto.ReissueRequest;
+import com.qnectdk.domain.user.dto.SignupRequest;
+import com.qnectdk.domain.user.dto.SignupResponse;
+import com.qnectdk.domain.user.dto.TokenResponse;
+import com.qnectdk.domain.user.service.AuthService;
+import com.qnectdk.global.response.ApiResponse;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/api/auth")
+@RequiredArgsConstructor
+public class AuthController {
+
+    private final AuthService authService;
+
+    @PostMapping("/signup")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ApiResponse<SignupResponse> signup(@Valid @RequestBody SignupRequest request) {
+        return ApiResponse.ok(authService.signup(request));
+    }
+
+    @GetMapping("/check-phone")
+    public ApiResponse<CheckPhoneResponse> checkPhone(@RequestParam String phone) {
+        return ApiResponse.ok(new CheckPhoneResponse(authService.isPhoneAvailable(phone)));
+    }
+
+    @PostMapping("/login")
+    public ApiResponse<TokenResponse> login(@Valid @RequestBody LoginRequest request) {
+        return ApiResponse.ok(authService.login(request));
+    }
+
+    @PostMapping("/reissue")
+    public ApiResponse<TokenResponse> reissue(@Valid @RequestBody ReissueRequest request) {
+        return ApiResponse.ok(authService.reissue(request.refreshToken()));
+    }
+
+    @PostMapping("/logout")
+    public ApiResponse<Void> logout(@Valid @RequestBody LogoutRequest request) {
+        authService.logout(request.refreshToken());
+        return ApiResponse.ok();
+    }
+}
