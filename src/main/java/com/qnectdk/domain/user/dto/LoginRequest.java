@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 public record LoginRequest(
 
         @NotBlank
-        String phone,
+        String loginId,
 
         @NotBlank
         String password

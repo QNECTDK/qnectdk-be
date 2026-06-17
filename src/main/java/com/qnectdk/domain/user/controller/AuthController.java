@@ -1,6 +1,6 @@
 package com.qnectdk.domain.user.controller;
 
-import com.qnectdk.domain.user.dto.CheckPhoneResponse;
+import com.qnectdk.domain.user.dto.CheckLoginIdResponse;
 import com.qnectdk.domain.user.dto.LoginRequest;
 import com.qnectdk.domain.user.dto.LogoutRequest;
 import com.qnectdk.domain.user.dto.ReissueRequest;
@@ -33,9 +33,9 @@ public class AuthController {
         return ApiResponse.ok(authService.signup(request));
     }
 
-    @GetMapping("/check-phone")
-    public ApiResponse<CheckPhoneResponse> checkPhone(@RequestParam String phone) {
-        return ApiResponse.ok(new CheckPhoneResponse(authService.isPhoneAvailable(phone)));
+    @GetMapping("/check-login-id")
+    public ApiResponse<CheckLoginIdResponse> checkLoginId(@RequestParam String loginId) {
+        return ApiResponse.ok(new CheckLoginIdResponse(authService.isLoginIdAvailable(loginId)));
     }
 
     @PostMapping("/login")

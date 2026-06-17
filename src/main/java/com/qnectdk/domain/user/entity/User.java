@@ -17,6 +17,7 @@ import java.time.LocalDate;
 
 @Entity
 @Table(name = "users", uniqueConstraints = {
+        @UniqueConstraint(name = "uk_users_login_id", columnNames = "login_id"),
         @UniqueConstraint(name = "uk_users_phone", columnNames = "phone"),
         @UniqueConstraint(name = "uk_users_public_code", columnNames = "public_code")
 })
@@ -27,6 +28,9 @@ public class User extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "login_id", nullable = false, unique = true, length = 20)
+    private String loginId;
 
     @Column(nullable = false, unique = true, length = 11)
     private String phone;
@@ -44,7 +48,9 @@ public class User extends BaseTimeEntity {
     private String publicCode;
 
     @Builder
-    private User(String phone, String passwordHash, String name, LocalDate birthDate, String publicCode) {
+    private User(String loginId, String phone, String passwordHash, String name,
+                 LocalDate birthDate, String publicCode) {
+        this.loginId = loginId;
         this.phone = phone;
         this.passwordHash = passwordHash;
         this.name = name;
@@ -52,9 +58,10 @@ public class User extends BaseTimeEntity {
         this.publicCode = publicCode;
     }
 
-    public static User create(String phone, String passwordHash, String name,
+    public static User create(String loginId, String phone, String passwordHash, String name,
                               LocalDate birthDate, String publicCode) {
         return User.builder()
+                .loginId(loginId)
                 .phone(phone)
                 .passwordHash(passwordHash)
                 .name(name)

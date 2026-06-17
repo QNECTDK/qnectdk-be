@@ -3,21 +3,22 @@ POST {{baseUrl}}/api/auth/signup
 Content-Type: application/json
 
 {
+  "loginId": "{{loginId}}",
   "phone": "{{phone}}",
   "password": "{{password}}",
   "name": "테스트",
   "birthDate": "2003-05-01"
 }
 
-### 전화번호 중복 확인 (available: false 면 이미 가입됨)
-GET {{baseUrl}}/api/auth/check-phone?phone={{phone}}
+### 아이디 중복 확인 (available: false 면 이미 사용 중)
+GET {{baseUrl}}/api/auth/check-login-id?loginId={{loginId}}
 
 ### 로그인 → access/refresh 토큰 캡처
 POST {{baseUrl}}/api/auth/login
 Content-Type: application/json
 
 {
-  "phone": "{{phone}}",
+  "loginId": "{{loginId}}",
   "password": "{{password}}"
 }
 
@@ -52,17 +53,18 @@ POST {{baseUrl}}/api/auth/signup
 Content-Type: application/json
 
 {
+  "loginId": "1A",
   "phone": "123",
   "password": "short",
   "name": "",
   "birthDate": "2999-01-01"
 }
 
-### (검증) 없는 번호/틀린 비번 → 401 INVALID_CREDENTIALS (동일 메시지)
+### (검증) 없는 아이디/틀린 비번 → 401 INVALID_CREDENTIALS (동일 메시지)
 POST {{baseUrl}}/api/auth/login
 Content-Type: application/json
 
 {
-  "phone": "01000000000",
+  "loginId": "nouser01",
   "password": "wrongpass1"
 }

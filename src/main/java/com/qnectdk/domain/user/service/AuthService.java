@@ -25,7 +25,7 @@ import java.time.temporal.ChronoUnit;
 @Transactional(readOnly = true)
 public class AuthService {
 
-    private static final String PHONE_REGEX = "^010\\d{8}$";
+    private static final String LOGIN_ID_REGEX = "^[a-z][a-z0-9_]{3,19}$";
 
     private final UserRepository userRepository;
     private final RefreshTokenRepository refreshTokenRepository;
@@ -35,10 +35,14 @@ public class AuthService {
 
     @Transactional
     public SignupResponse signup(SignupRequest request) {
+        if (userRepository.existsByLoginId(request.loginId())) {
+            throw new BusinessException(ErrorCode.DUPLICATE_LOGIN_ID);
+        }
         if (userRepository.existsByPhone(request.phone())) {
             throw new BusinessException(ErrorCode.DUPLICATE_PHONE);
         }
         User user = User.create(
+                request.loginId(),
                 request.phone(),
                 passwordEncoder.encode(request.password()),
                 request.name(),
@@ -47,16 +51,16 @@ public class AuthService {
         return SignupResponse.from(userRepository.save(user));
     }
 
-    public boolean isPhoneAvailable(String phone) {
-        if (phone == null || !phone.matches(PHONE_REGEX)) {
+    public boolean isLoginIdAvailable(String loginId) {
+        if (loginId == null || !loginId.matches(LOGIN_ID_REGEX)) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);
         }
-        return !userRepository.existsByPhone(phone);
+        return !userRepository.existsByLoginId(loginId);
     }
 
     @Transactional
     public TokenResponse login(LoginRequest request) {
-        User user = userRepository.findByPhone(request.phone())
+        User user = userRepository.findByLoginId(request.loginId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_CREDENTIALS));
         if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
             throw new BusinessException(ErrorCode.INVALID_CREDENTIALS);
