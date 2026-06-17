@@ -40,3 +40,7 @@ out/
 .env
 .env.*
 !.env.example
+
+### Claude Code ###
+.claude/.commit-allowed
+.claude/settings.local.json
