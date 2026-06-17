@@ -1,12 +1,26 @@
-# 먼저 auth.http 의 "로그인"을 실행해 accessToken 을 캡처한 뒤 사용하세요.
+# 같은 파일 안에서 먼저 "로그인"을 실행해 토큰을 얻은 뒤 사용하세요.
+
+@baseUrl = http://localhost:8080
+@loginId = tester01
+@password = test1234
+
+### 로그인 (토큰 발급)
+# @name login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "loginId": "{{loginId}}",
+  "password": "{{password}}"
+}
 
 ### 전체 관심사 (카테고리별 그룹)
 GET {{baseUrl}}/api/interests
-Authorization: Bearer {{accessToken}}
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 ### 내 관심사 일괄 설정 (전체 교체)
 PUT {{baseUrl}}/api/interests/me
-Authorization: Bearer {{accessToken}}
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
 Content-Type: application/json
 
 {
@@ -15,11 +29,11 @@ Content-Type: application/json
 
 ### 내 관심사 조회 (카테고리/이름순 정렬)
 GET {{baseUrl}}/api/interests/me
-Authorization: Bearer {{accessToken}}
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 ### 내 관심사 전체 해제 (빈 리스트)
 PUT {{baseUrl}}/api/interests/me
-Authorization: Bearer {{accessToken}}
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
 Content-Type: application/json
 
 {
@@ -28,7 +42,7 @@ Content-Type: application/json
 
 ### (검증) 존재하지 않는 관심사 id → 404 INTEREST_NOT_FOUND
 PUT {{baseUrl}}/api/interests/me
-Authorization: Bearer {{accessToken}}
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
 Content-Type: application/json
 
 {

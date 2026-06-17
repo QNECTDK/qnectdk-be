@@ -1,8 +1,23 @@
-# 먼저 auth.http 의 "로그인"을 실행해 accessToken 을 캡처한 뒤 사용하세요.
+# 같은 파일 안에서 먼저 "로그인"을 실행해 토큰을 얻은 뒤 사용하세요.
+
+@baseUrl = http://localhost:8080
+@loginId = tester01
+@password = test1234
+
+### 로그인 (토큰 발급)
+# @name login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "loginId": "{{loginId}}",
+  "password": "{{password}}"
+}
 
 ### 내 프로필 생성 (온보딩) → 201
+# @name createProfile
 POST {{baseUrl}}/api/profiles
-Authorization: Bearer {{accessToken}}
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
 Content-Type: application/json
 
 {
@@ -13,15 +28,13 @@ Content-Type: application/json
   "favoriteFood": "치킨"
 }
 
-> {% client.global.set("publicCode", response.body.data.publicCode); %}
-
 ### 내 프로필 조회 (age·zodiac 계산 포함)
 GET {{baseUrl}}/api/profiles/me
-Authorization: Bearer {{accessToken}}
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 ### 내 프로필 수정
 PUT {{baseUrl}}/api/profiles/me
-Authorization: Bearer {{accessToken}}
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
 Content-Type: application/json
 
 {
@@ -32,9 +45,9 @@ Content-Type: application/json
   "favoriteFood": "초밥"
 }
 
-### 프로필 이미지 업로드 (multipart) — 같은 폴더의 실제 이미지 파일로 교체
+### 프로필 이미지 업로드 (multipart) — 같은 폴더의 실제 이미지로 교체
 POST {{baseUrl}}/api/profiles/me/image
-Authorization: Bearer {{accessToken}}
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
 Content-Type: multipart/form-data; boundary=WebAppBoundary
 
 --WebAppBoundary
@@ -46,15 +59,15 @@ Content-Type: image/png
 
 ### 내 공유 코드/URL 조회
 GET {{baseUrl}}/api/profiles/me/share
-Authorization: Bearer {{accessToken}}
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
-### QR 스캔: 공유 코드로 상대 프로필 조회 (생성 응답에서 캡처한 publicCode 사용)
-GET {{baseUrl}}/api/profiles/{{publicCode}}
-Authorization: Bearer {{accessToken}}
+### QR 스캔: 공유 코드로 상대 프로필 조회 (생성 응답의 publicCode 사용)
+GET {{baseUrl}}/api/profiles/{{createProfile.response.body.$.data.publicCode}}
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 ### (보안) refresh 토큰을 access 처럼 사용 → 401 이어야 함
 GET {{baseUrl}}/api/profiles/me
-Authorization: Bearer {{refreshToken}}
+Authorization: Bearer {{login.response.body.$.data.refreshToken}}
 
 ### (보안) 토큰 없이 접근 → 401 ApiResponse
 GET {{baseUrl}}/api/profiles/me

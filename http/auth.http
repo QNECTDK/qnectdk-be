@@ -1,3 +1,8 @@
+@baseUrl = http://localhost:8080
+@loginId = tester01
+@phone = 01099990001
+@password = test1234
+
 ### 회원가입
 POST {{baseUrl}}/api/auth/signup
 Content-Type: application/json
@@ -13,7 +18,8 @@ Content-Type: application/json
 ### 아이디 중복 확인 (available: false 면 이미 사용 중)
 GET {{baseUrl}}/api/auth/check-login-id?loginId={{loginId}}
 
-### 로그인 → access/refresh 토큰 캡처
+### 로그인 → 이후 요청에서 {{login.response.body.$.data.accessToken}} 로 참조
+# @name login
 POST {{baseUrl}}/api/auth/login
 Content-Type: application/json
 
@@ -22,30 +28,20 @@ Content-Type: application/json
   "password": "{{password}}"
 }
 
-> {%
-client.global.set("accessToken", response.body.data.accessToken);
-client.global.set("refreshToken", response.body.data.refreshToken);
-%}
-
-### 토큰 재발급 (refresh 회전 — 이후 새 토큰으로 갱신됨)
+### 토큰 재발급 (직전 로그인 응답의 refreshToken 사용)
 POST {{baseUrl}}/api/auth/reissue
 Content-Type: application/json
 
 {
-  "refreshToken": "{{refreshToken}}"
+  "refreshToken": "{{login.response.body.$.data.refreshToken}}"
 }
-
-> {%
-client.global.set("accessToken", response.body.data.accessToken);
-client.global.set("refreshToken", response.body.data.refreshToken);
-%}
 
 ### 로그아웃 (refresh 토큰 폐기)
 POST {{baseUrl}}/api/auth/logout
 Content-Type: application/json
 
 {
-  "refreshToken": "{{refreshToken}}"
+  "refreshToken": "{{login.response.body.$.data.refreshToken}}"
 }
 
 ### (검증) 잘못된 입력 → 400 + 필드별 에러
@@ -60,7 +56,7 @@ Content-Type: application/json
   "birthDate": "2999-01-01"
 }
 
-### (검증) 없는 아이디/틀린 비번 → 401 INVALID_CREDENTIALS (동일 메시지)
+### (검증) 없는 아이디/틀린 비번 → 401 INVALID_CREDENTIALS
 POST {{baseUrl}}/api/auth/login
 Content-Type: application/json
 
