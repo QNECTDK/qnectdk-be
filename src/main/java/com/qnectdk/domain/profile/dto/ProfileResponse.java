@@ -5,6 +5,7 @@ import com.qnectdk.domain.profile.entity.Profile;
 import com.qnectdk.domain.user.dto.UserSummary;
 import com.qnectdk.global.util.AgeUtil;
 import com.qnectdk.global.util.ZodiacUtil;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * 프로필 응답. 나이·띠는 저장하지 않고 사용자 생년월일로 계산해 채운다.
@@ -12,17 +13,29 @@ import com.qnectdk.global.util.ZodiacUtil;
  * 프로필 필드는 null, profileCompleted=false 로 내려준다.
  */
 public record ProfileResponse(
+        @Schema(description = "사용자 ID")
         Long userId,
+        @Schema(description = "이름")
         String name,
+        @Schema(description = "나이(생년월일로 계산)")
         int age,
+        @Schema(description = "띠(생년월일로 계산)")
         String zodiac,
+        @Schema(description = "학교명")
         String school,
+        @Schema(description = "성별")
         Gender gender,
+        @Schema(description = "MBTI")
         String mbti,
+        @Schema(description = "주량")
         String drinkLevel,
+        @Schema(description = "좋아하는 음식")
         String favoriteFood,
+        @Schema(description = "프로필 이미지 URL")
         String imageUrl,
+        @Schema(description = "QR/공유용 고유 코드")
         String publicCode,
+        @Schema(description = "온보딩 완료 여부(프로필 작성됨)")
         boolean profileCompleted
 ) {
 
