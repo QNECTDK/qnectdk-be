@@ -7,6 +7,8 @@ import com.qnectdk.domain.friend.repository.FriendshipRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.qnectdk.domain.friend.dto.FriendSummary;
+import com.qnectdk.domain.user.service.UserQueryService;
 
 import java.util.List;
 
@@ -16,6 +18,7 @@ import java.util.List;
 public class FriendService {
 
     private final FriendshipRepository friendshipRepository;
+    private final UserQueryService userQueryService;
 
     // 친구 추가 요청
     @Transactional
@@ -67,6 +70,17 @@ public class FriendService {
                 .findAcceptedFriendsOf(userId, FriendshipStatus.ACCEPTED)
                 .stream()
                 .map(FriendResponse::from)
+                .toList();
+    }
+
+    // 자동완성용: 내 친구 목록 (상대방 id + 이름)
+    public List<FriendSummary> getFriendSummaries(Long userId) {
+        List<Long> friendIds = getFriendIds(userId);
+        if (friendIds.isEmpty()) {
+            return List.of();
+        }
+        return userQueryService.getByIds(friendIds).stream()
+                .map(u -> new FriendSummary(u.userId(), u.name()))
                 .toList();
     }
 

@@ -4,10 +4,14 @@ import com.qnectdk.domain.friend.dto.FriendMemoRequest;
 import com.qnectdk.domain.friend.dto.FriendMemoResponse;
 import com.qnectdk.domain.friend.dto.FriendRequestDto;
 import com.qnectdk.domain.friend.dto.FriendResponse;
+import com.qnectdk.domain.friend.dto.FriendSummary;
 import com.qnectdk.domain.friend.service.FriendMemoService;
 import com.qnectdk.domain.friend.service.FriendService;
+import com.qnectdk.global.response.ApiResponse;
+import com.qnectdk.global.security.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,67 +24,72 @@ public class FriendController {
     private final FriendService friendService;
     private final FriendMemoService friendMemoService;
 
-    // TODO: JWT 붙으면 currentUserId를 @AuthenticationPrincipal에서 꺼내도록 교체.
-    //       지금은 임시로 헤더 X-USER-ID로 "내 ID"를 받는다.
-
     // 친구 추가 요청
     @PostMapping
-    public FriendResponse request(
-            @RequestHeader("X-USER-ID") Long currentUserId,
+    public ApiResponse<FriendResponse> request(
+            @AuthenticationPrincipal CustomUserDetails user,
             @Valid @RequestBody FriendRequestDto dto
     ) {
-        return friendService.request(currentUserId, dto.addresseeId());
+        return ApiResponse.ok(friendService.request(user.getUserId(), dto.addresseeId()));
     }
 
     // 친구 요청 수락
     @PatchMapping("/{friendshipId}/accept")
-    public FriendResponse accept(
-            @RequestHeader("X-USER-ID") Long currentUserId,
+    public ApiResponse<FriendResponse> accept(
+            @AuthenticationPrincipal CustomUserDetails user,
             @PathVariable Long friendshipId
     ) {
-        return friendService.accept(friendshipId, currentUserId);
+        return ApiResponse.ok(friendService.accept(friendshipId, user.getUserId()));
     }
 
     // 친구 요청 거절
     @PatchMapping("/{friendshipId}/reject")
-    public FriendResponse reject(
-            @RequestHeader("X-USER-ID") Long currentUserId,
+    public ApiResponse<FriendResponse> reject(
+            @AuthenticationPrincipal CustomUserDetails user,
             @PathVariable Long friendshipId
     ) {
-        return friendService.reject(friendshipId, currentUserId);
+        return ApiResponse.ok(friendService.reject(friendshipId, user.getUserId()));
     }
 
     // 내 친구 목록
     @GetMapping
-    public List<FriendResponse> getFriends(
-            @RequestHeader("X-USER-ID") Long currentUserId
+    public ApiResponse<List<FriendResponse>> getFriends(
+            @AuthenticationPrincipal CustomUserDetails user
     ) {
-        return friendService.getFriends(currentUserId);
+        return ApiResponse.ok(friendService.getFriends(user.getUserId()));
+    }
+
+    // 자동완성용 친구 목록 (id + 이름)
+    @GetMapping("/summaries")
+    public ApiResponse<List<FriendSummary>> getFriendSummaries(
+            @AuthenticationPrincipal CustomUserDetails user
+    ) {
+        return ApiResponse.ok(friendService.getFriendSummaries(user.getUserId()));
     }
 
     // 내가 받은 친구 요청 목록
     @GetMapping("/requests/received")
-    public List<FriendResponse> getReceivedRequests(
-            @RequestHeader("X-USER-ID") Long currentUserId
+    public ApiResponse<List<FriendResponse>> getReceivedRequests(
+            @AuthenticationPrincipal CustomUserDetails user
     ) {
-        return friendService.getReceivedRequests(currentUserId);
+        return ApiResponse.ok(friendService.getReceivedRequests(user.getUserId()));
     }
 
-    // 친구 메모 작성/수정 (있으면 수정, 없으면 생성)
+    // 친구 메모 작성/수정
     @PutMapping("/memos")
-    public FriendMemoResponse upsertMemo(
-            @RequestHeader("X-USER-ID") Long currentUserId,
+    public ApiResponse<FriendMemoResponse> upsertMemo(
+            @AuthenticationPrincipal CustomUserDetails user,
             @Valid @RequestBody FriendMemoRequest dto
     ) {
-        return friendMemoService.upsert(currentUserId, dto.friendId(), dto.content());
+        return ApiResponse.ok(friendMemoService.upsert(user.getUserId(), dto.friendId(), dto.content()));
     }
 
     // 특정 친구에 대한 내 메모 조회
     @GetMapping("/memos/{friendId}")
-    public FriendMemoResponse getMemo(
-            @RequestHeader("X-USER-ID") Long currentUserId,
+    public ApiResponse<FriendMemoResponse> getMemo(
+            @AuthenticationPrincipal CustomUserDetails user,
             @PathVariable Long friendId
     ) {
-        return friendMemoService.get(currentUserId, friendId);
+        return ApiResponse.ok(friendMemoService.get(user.getUserId(), friendId));
     }
 }
