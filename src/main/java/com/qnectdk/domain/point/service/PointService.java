@@ -1,5 +1,7 @@
 package com.qnectdk.domain.point.service;
 
+import com.qnectdk.domain.point.dto.PointTransactionResponse;
+import java.util.List;
 import com.qnectdk.domain.point.entity.PointPolicy;
 import com.qnectdk.domain.point.entity.PointReason;
 import com.qnectdk.domain.point.entity.PointTransaction;
@@ -88,6 +90,13 @@ public class PointService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
         return user.getPointBalance();
+    }
+
+    // 내 거래 내역 (최신순)
+    public List<PointTransactionResponse> getMyTransactions(Long userId) {
+        return txRepository.findByUserIdOrderByIdDesc(userId).stream()
+                .map(PointTransactionResponse::from)
+                .toList();
     }
 }
 
