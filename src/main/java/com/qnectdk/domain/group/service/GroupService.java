@@ -13,6 +13,7 @@ import com.qnectdk.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.qnectdk.domain.group.dto.GroupWithMembersResponse;
 
 import java.util.List;
 
@@ -37,6 +38,41 @@ public class GroupService {
         }
         FriendGroup saved = groupRepository.save(FriendGroup.create(userId, name, hashtags));
         return GroupResponse.from(saved);
+    }
+
+    // 그룹 생성 + 멤버 여러 명을 한 번에 (한 트랜잭션)
+    @Transactional
+    public GroupWithMembersResponse createGroupWithMembers(
+            Long userId, String name, String hashtags, List<Long> friendIds) {
+
+        // 1) 그룹 생성 (개수 제한 + 이름 중복 검증 포함)
+        if (groupRepository.countByUserId(userId) >= FREE_GROUP_LIMIT) {
+            throw new BusinessException(ErrorCode.RESOURCE_CONFLICT);
+        }
+        if (groupRepository.existsByUserIdAndName(userId, name)) {
+            throw new BusinessException(ErrorCode.DUPLICATE_GROUP_NAME);
+        }
+        FriendGroup group = groupRepository.save(FriendGroup.create(userId, name, hashtags));
+
+        // 2) 멤버 추가 (각각 ACCEPTED 친구 검증 + 중복 방지)
+        List<GroupMemberResponse> memberResponses = new java.util.ArrayList<>();
+        if (friendIds != null) {
+            for (Long friendId : friendIds) {
+                boolean isFriend = friendshipRepository
+                        .existsAcceptedBetween(userId, friendId, FriendshipStatus.ACCEPTED);
+                if (!isFriend) {
+                    throw new BusinessException(ErrorCode.NOT_ACCEPTED_FRIEND);
+                }
+                if (memberRepository.existsByGroupIdAndFriendId(group.getId(), friendId)) {
+                    throw new BusinessException(ErrorCode.ALREADY_GROUP_MEMBER);
+                }
+                FriendGroupMember saved =
+                        memberRepository.save(FriendGroupMember.of(group.getId(), friendId));
+                memberResponses.add(GroupMemberResponse.from(saved));
+            }
+        }
+
+        return new GroupWithMembersResponse(GroupResponse.from(group), memberResponses);
     }
 
     @Transactional

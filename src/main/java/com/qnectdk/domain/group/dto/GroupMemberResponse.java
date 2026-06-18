@@ -2,6 +2,7 @@ package com.qnectdk.domain.group.dto;
 
 import com.qnectdk.domain.group.entity.FriendGroupMember;
 
+
 public record GroupMemberResponse(
         Long memberId,
         Long groupId,
