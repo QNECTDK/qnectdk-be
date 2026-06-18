@@ -5,6 +5,7 @@ import com.qnectdk.domain.friend.dto.FriendSummary;
 import com.qnectdk.domain.friend.entity.Friendship;
 import com.qnectdk.domain.friend.entity.FriendshipStatus;
 import com.qnectdk.domain.friend.repository.FriendshipRepository;
+import com.qnectdk.domain.point.service.PointService;
 import com.qnectdk.domain.user.service.UserQueryService;
 import com.qnectdk.global.exception.BusinessException;
 import com.qnectdk.global.exception.ErrorCode;
@@ -21,6 +22,7 @@ public class FriendService {
 
     private final FriendshipRepository friendshipRepository;
     private final UserQueryService userQueryService;
+    private final PointService pointService;
 
     @Transactional
     public FriendResponse request(Long requesterId, Long addresseeId) {
@@ -45,6 +47,13 @@ public class FriendService {
             throw new BusinessException(ErrorCode.FRIENDSHIP_NOT_PENDING);
         }
         f.accept();
+
+        // 친구 성사 → 양쪽 모두 친구 수 +1 → 각자 마일스톤 체크
+        Long requesterId = f.getRequesterId();
+        Long addresseeId = f.getAddresseeId();
+        pointService.earnFriendMilestone(requesterId, getFriendIds(requesterId).size());
+        pointService.earnFriendMilestone(addresseeId, getFriendIds(addresseeId).size());
+
         return FriendResponse.from(f);
     }
 
@@ -71,7 +80,6 @@ public class FriendService {
                 .stream().map(FriendResponse::from).toList();
     }
 
-    // 내 ACCEPTED 친구들의 userId 리스트. 친구 없으면 빈 리스트.
     public List<Long> getFriendIds(Long userId) {
         return friendshipRepository
                 .findAcceptedFriendsOf(userId, FriendshipStatus.ACCEPTED)
@@ -80,7 +88,6 @@ public class FriendService {
                 .toList();
     }
 
-    // 자동완성용: 내 친구 목록 (상대방 id + 이름)
     public List<FriendSummary> getFriendSummaries(Long userId) {
         List<Long> friendIds = getFriendIds(userId);
         if (friendIds.isEmpty()) {

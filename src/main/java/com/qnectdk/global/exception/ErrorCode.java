@@ -62,7 +62,10 @@ public enum ErrorCode {
     DUPLICATE_GROUP_NAME(HttpStatus.CONFLICT, "이미 같은 이름의 그룹이 있습니다."),
     NOT_ACCEPTED_FRIEND(HttpStatus.BAD_REQUEST, "수락된 친구만 그룹에 추가할 수 있습니다."),
     ALREADY_GROUP_MEMBER(HttpStatus.CONFLICT, "이미 그룹에 추가된 친구입니다."),
-    GROUP_MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "그룹에 없는 멤버입니다.");
+    GROUP_MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "그룹에 없는 멤버입니다."),
+
+    // point (B 도메인)
+    INSUFFICIENT_POINT(HttpStatus.CONFLICT, "포인트가 부족합니다.");
 
     private final HttpStatus status;
     private final String message;
