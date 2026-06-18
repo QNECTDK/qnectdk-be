@@ -28,6 +28,37 @@
           }
         ]
       }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/convention-check.sh\"",
+            "timeout": 15,
+            "statusMessage": "컨벤션 점검 중"
+          },
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/compile-check.sh\"",
+            "timeout": 180,
+            "statusMessage": "컴파일 점검 중"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/integrity-check.sh\"",
+            "timeout": 240,
+            "statusMessage": "전체 컴파일 정합성 점검 중"
+          }
+        ]
+      }
     ]
   }
 }

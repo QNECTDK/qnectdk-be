@@ -1,0 +1,54 @@
+# 데일리 API 수동 테스트 (REST Client)
+# 핵심 규칙: "내가 답해야 통계 공개" — 답하기 전 통계 조회는 403.
+# 오늘의 데일리는 기동 시드(DailyQuizSeeder)가 보장한다.
+
+@baseUrl = http://localhost:8080
+@loginId = tester01
+@password = test1234
+
+### 로그인
+# @name login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{ "loginId": "{{loginId}}", "password": "{{password}}" }
+
+### 오늘의 데일리 조회 — 미답변이면 answered:false, mySelection:null
+GET {{baseUrl}}/api/daily/today
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### (검증) 답하기 전 통계 조회 → 403 DAILY_NOT_ANSWERED_YET
+GET {{baseUrl}}/api/daily/today/stats
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### 답변 제출(A) → 201, 제출 직후 통계(전체/친구 비율 + 친구별 선택) 반환
+POST {{baseUrl}}/api/daily/today/answer
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+Content-Type: application/json
+
+{ "selected": "A" }
+
+### (검증) 같은 날 재답변 → 409 DAILY_ALREADY_ANSWERED
+POST {{baseUrl}}/api/daily/today/answer
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+Content-Type: application/json
+
+{ "selected": "B" }
+
+### 통계 조회 — 이제 답했으니 공개됨
+GET {{baseUrl}}/api/daily/today/stats
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### 오늘의 데일리 다시 조회 — answered:true, mySelection:A
+GET {{baseUrl}}/api/daily/today
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### (검증) 잘못된 선택값(C) → 400 INVALID_INPUT
+POST {{baseUrl}}/api/daily/today/answer
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+Content-Type: application/json
+
+{ "selected": "C" }
+
+### (검증) 토큰 없이 → 401
+GET {{baseUrl}}/api/daily/today
