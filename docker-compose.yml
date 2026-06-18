@@ -8,23 +8,24 @@
 services:
   mysql:
     image: mysql:8.4
-    container_name: qnectdk-mysql
+    container_name: qnectdb-mysql
     restart: unless-stopped
     environment:
-      MYSQL_DATABASE: qnectdk
-      MYSQL_ROOT_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-password}
+      # application.yml 의 datasource.url(/qnectdb) 및 .env 의 DB_PASSWORD 와 일치시킨다.
+      MYSQL_DATABASE: qnectdb
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-password}
     ports:
       - "3306:3306"
     command:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_unicode_ci
     volumes:
-      - qnectdk-mysql-data:/var/lib/mysql
+      - qnectdb-mysql-data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${SPRING_DATASOURCE_PASSWORD:-password}"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${DB_PASSWORD:-password}"]
       interval: 10s
       timeout: 5s
       retries: 5
 
 volumes:
-  qnectdk-mysql-data:
+  qnectdb-mysql-data:

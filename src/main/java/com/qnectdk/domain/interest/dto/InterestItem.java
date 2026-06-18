@@ -1,4 +1,9 @@
 package com.qnectdk.domain.interest.dto;
 
-public record InterestItem(Long id, String name) {
+import io.swagger.v3.oas.annotations.media.Schema;
+
+public record InterestItem(
+        @Schema(description = "관심사 ID") Long id,
+        @Schema(description = "관심사 이름") String name
+) {
 }
