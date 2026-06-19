@@ -44,3 +44,6 @@ out/
 ### Claude Code ###
 .claude/.commit-allowed
 .claude/settings.local.json
+
+### jqwik (PBT) ###
+.jqwik-database

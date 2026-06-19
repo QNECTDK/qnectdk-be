@@ -43,6 +43,9 @@ dependencies {
     testCompileOnly 'org.projectlombok:lombok'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testAnnotationProcessor 'org.projectlombok:lombok'
+
+    // 속성 기반 테스트(PBT) — JUnit 5 플랫폼 연동. 운영/B 도메인과 무관한 테스트 전용 의존성.
+    testImplementation 'net.jqwik:jqwik:1.9.2'
 }
 
 tasks.named('test') {

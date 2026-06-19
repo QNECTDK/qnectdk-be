@@ -2,6 +2,9 @@ package com.qnectdk.domain.quiz.service;
 
 import com.qnectdk.domain.interest.dto.InterestResponse;
 import com.qnectdk.domain.interest.service.InterestService;
+import com.qnectdk.domain.point.entity.PointPolicy;
+import com.qnectdk.domain.point.entity.PointReason;
+import com.qnectdk.domain.point.service.PointService;
 import com.qnectdk.domain.profile.dto.ProfileResponse;
 import com.qnectdk.domain.profile.service.ProfileService;
 import com.qnectdk.domain.quiz.client.QuizGenerationClient;
@@ -63,6 +66,7 @@ public class QuizService {
     private final QuizContentValidator validator;
     private final QuizGenerationClient generationClient;
     private final PointPort pointPort;
+    private final PointService pointService;
     private final UserQueryService userQueryService;
     private final ProfileService profileService;
     private final InterestService interestService;
@@ -105,13 +109,29 @@ public class QuizService {
 
     /**
      * 퀴즈 편집·저장(본인). 문항/보기 직접 작성·수정·추가. 외부 호출이 없으므로 단일 읽기+쓰기 트랜잭션으로 처리한다.
+     * 활성·비활성을 불문하고 퀴즈 레코드가 한 건도 없을 때(최초 설정)만 QUIZ_FIRST_SETUP 을 생애 1회 적립한다.
      */
     @Transactional
     public QuizResponse saveMyQuiz(Long ownerId, QuizSaveRequest request) {
+        boolean firstSetup = !quizRepository.existsByOwnerId(ownerId); // 저장 직전 판정(레코드 존재 여부 기준)
         QuizDraft draft = toDraft(request);
         validator.validate(draft);
         Quiz quiz = quizWriter.replaceActiveContent(ownerId, draft);
+        if (firstSetup) {
+            pointService.earn(ownerId, PointPolicy.QUIZ_FIRST_SETUP, PointReason.QUIZ_FIRST_SETUP, null);
+        }
         return assemble(quiz.getId());
+    }
+
+    /**
+     * 내 활성 퀴즈 삭제(소프트 삭제). 문항·보기 제거 + active=false 전이, 퀴즈 행은 보존한다.
+     * 활성 퀴즈가 없으면 QUIZ_NOT_FOUND. 본인(ownerId) 활성 퀴즈만 대상으로 한다.
+     */
+    @Transactional
+    public void deleteMyQuiz(Long ownerId) {
+        Quiz quiz = quizRepository.findFirstByOwnerIdAndActiveTrueOrderByIdDesc(ownerId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.QUIZ_NOT_FOUND));
+        quizWriter.clearContentAndDeactivate(quiz);
     }
 
     /**

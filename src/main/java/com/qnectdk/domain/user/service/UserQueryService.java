@@ -40,4 +40,12 @@ public class UserQueryService {
                 .map(UserSummary::from)
                 .toList();
     }
+
+    /**
+     * 전체 사용자 ID 목록을 조회한다(데일리 알림 팬아웃 등 전체 사용자 순회용).
+     * 엔티티 전체 로딩을 피하기 위해 ID만 select 한다.
+     */
+    public List<Long> getAllUserIds() {
+        return userRepository.findAllUserIds();
+    }
 }

@@ -17,6 +17,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -62,6 +63,14 @@ public class QuizController {
             @AuthenticationPrincipal CustomUserDetails user,
             @Valid @RequestBody QuizSaveRequest request) {
         return ApiResponse.ok(quizService.saveMyQuiz(user.getUserId(), request));
+    }
+
+    @Operation(summary = "내 퀴즈 삭제",
+            description = "내 활성 퀴즈의 문항·보기를 제거하고 비활성화한다. 활성 퀴즈가 없으면 404(QUIZ_NOT_FOUND).")
+    @DeleteMapping("/me")
+    public ApiResponse<Void> deleteMine(@AuthenticationPrincipal CustomUserDetails user) {
+        quizService.deleteMyQuiz(user.getUserId());
+        return ApiResponse.ok();
     }
 
     @Operation(summary = "친구 퀴즈 조회",

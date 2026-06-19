@@ -2,6 +2,9 @@ package com.qnectdk.domain.daily.init;
 
 import com.qnectdk.domain.daily.entity.DailyQuiz;
 import com.qnectdk.domain.daily.repository.DailyQuizRepository;
+import com.qnectdk.domain.notification.entity.NotificationType;
+import com.qnectdk.domain.notification.service.NotificationService;
+import com.qnectdk.domain.user.service.UserQueryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationArguments;
@@ -34,6 +37,8 @@ public class DailyQuizSeeder implements ApplicationRunner {
     );
 
     private final DailyQuizRepository dailyQuizRepository;
+    private final UserQueryService userQueryService;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -43,7 +48,19 @@ public class DailyQuizSeeder implements ApplicationRunner {
             return;
         }
         String[] pick = POOL.get((int) Math.floorMod(today.toEpochDay(), POOL.size()));
-        dailyQuizRepository.save(DailyQuiz.create(today, pick[0], pick[1], pick[2]));
+        DailyQuiz saved = dailyQuizRepository.save(DailyQuiz.create(today, pick[0], pick[1], pick[2]));
+        notifyAllUsers(saved.getId());
         log.info("오늘의 데일리 시드 적재: {} ({} vs {})", pick[0], pick[1], pick[2]);
+    }
+
+    private void notifyAllUsers(Long dailyQuizId) {
+        for (Long userId : userQueryService.getAllUserIds()) {
+            try {
+                notificationService.push(userId, NotificationType.DAILY_QUIZ,
+                        "오늘의 퀴즈가 생성되었습니다!", "지금 바로 풀어보세요!", dailyQuizId);
+            } catch (Exception e) {
+                log.warn("데일리 퀴즈 알림 발송 실패 userId={}", userId, e); // 계속 진행, 롤백 안 함
+            }
+        }
     }
 }
