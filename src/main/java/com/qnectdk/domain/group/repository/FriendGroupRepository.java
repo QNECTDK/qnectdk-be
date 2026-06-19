@@ -16,7 +16,7 @@ public interface FriendGroupRepository extends JpaRepository<FriendGroup, Long> 
     // 같은 유저가 같은 이름 그룹 중복 생성 방지용
     boolean existsByUserIdAndName(Long userId, String name);
 
-    // 무료 5개 제한 체크용
+    // 무료 5개 초과 여부 체크용 (초과 시 포인트 차감)
     long countByUserId(Long userId);
 
 }

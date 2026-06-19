@@ -24,8 +24,8 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class GroupService {
 
-    private static final int FREE_GROUP_LIMIT = 5; // 무료 5개 제한 (결제 시 해제)
-    private static final int GROUP_CREATE_COST = 10; // 그룹 생성 시 차감 포인트
+    private static final int FREE_GROUP_LIMIT = 5; // 무료 5개, 이후부터는 포인트 차감으로 생성 가능
+    private static final int GROUP_CREATE_COST = 10; // 무료 개수 초과 시 그룹 생성 차감 포인트
 
     private final FriendGroupRepository groupRepository;
     private final FriendGroupMemberRepository memberRepository;
@@ -34,14 +34,14 @@ public class GroupService {
 
     @Transactional
     public GroupResponse createGroup(Long userId, String name, String hashtags) {
-        if (groupRepository.countByUserId(userId) >= FREE_GROUP_LIMIT) {
-            throw new BusinessException(ErrorCode.RESOURCE_CONFLICT); // 그룹 개수 초과(공통 매핑)
-        }
+        boolean overFreeLimit = groupRepository.countByUserId(userId) >= FREE_GROUP_LIMIT;
         if (groupRepository.existsByUserIdAndName(userId, name)) {
             throw new BusinessException(ErrorCode.DUPLICATE_GROUP_NAME);
         }
         FriendGroup saved = groupRepository.save(FriendGroup.create(userId, name, hashtags));
-        pointService.spend(userId, GROUP_CREATE_COST, PointReason.GROUP_CREATE, saved.getId());
+        if (overFreeLimit) {
+            pointService.spend(userId, GROUP_CREATE_COST, PointReason.GROUP_CREATE, saved.getId());
+        }
         return GroupResponse.from(saved);
     }
 
@@ -50,15 +50,15 @@ public class GroupService {
     public GroupWithMembersResponse createGroupWithMembers(
             Long userId, String name, String hashtags, List<Long> friendIds) {
 
-        // 1) 그룹 생성 (개수 제한 + 이름 중복 검증 포함)
-        if (groupRepository.countByUserId(userId) >= FREE_GROUP_LIMIT) {
-            throw new BusinessException(ErrorCode.RESOURCE_CONFLICT);
-        }
+        // 1) 그룹 생성 (무료 개수 초과 시 차감 + 이름 중복 검증 포함)
+        boolean overFreeLimit = groupRepository.countByUserId(userId) >= FREE_GROUP_LIMIT;
         if (groupRepository.existsByUserIdAndName(userId, name)) {
             throw new BusinessException(ErrorCode.DUPLICATE_GROUP_NAME);
         }
         FriendGroup group = groupRepository.save(FriendGroup.create(userId, name, hashtags));
-        pointService.spend(userId, GROUP_CREATE_COST, PointReason.GROUP_CREATE, group.getId());
+        if (overFreeLimit) {
+            pointService.spend(userId, GROUP_CREATE_COST, PointReason.GROUP_CREATE, group.getId());
+        }
 
         // 2) 멤버 추가 (각각 ACCEPTED 친구 검증 + 중복 방지)
         List<GroupMemberResponse> memberResponses = new java.util.ArrayList<>();
