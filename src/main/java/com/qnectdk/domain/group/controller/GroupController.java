@@ -27,7 +27,7 @@ public class GroupController {
 
     private final GroupService groupService;
 
-    @Operation(summary = "그룹 생성", description = "멤버 없이 그룹만 생성한다. 무료 3개 제한.")
+    @Operation(summary = "그룹 생성", description = "멤버 없이 그룹만 생성한다. 무료 5개 제한, 생성 시 포인트 10점 차감.")
     @PostMapping
     public ApiResponse<GroupResponse> create(
             @AuthenticationPrincipal CustomUserDetails user,
@@ -36,7 +36,7 @@ public class GroupController {
         return ApiResponse.ok(groupService.createGroup(user.getUserId(), dto.name(), dto.hashtags()));
     }
 
-    @Operation(summary = "그룹 생성 및 멤버 추가", description = "그룹 이름, 해시태그, 친구 ID 목록을 받아 그룹을 생성하고 선택한 친구들을 멤버로 추가합니다.")
+    @Operation(summary = "그룹 생성 및 멤버 추가", description = "그룹 이름, 해시태그, 친구 ID 목록을 받아 그룹을 생성하고 선택한 친구들을 멤버로 추가합니다. 무료 5개 제한, 생성 시 포인트 10점 차감.")
     @PostMapping("/with-members")
     public ApiResponse<GroupWithMembersResponse> createWithMembers(
             @AuthenticationPrincipal CustomUserDetails user,

@@ -6,5 +6,6 @@ public enum PointReason {
     QUIZ_FIRST_SETUP,    // 퀴즈 최초 설정
     QUIZ_FIRST_SOLVE,    // 친구 첫 퀴즈 풀기 10P
     FRIEND_MILESTONE,    // 친구 N명 달성
-    SHOP_PURCHASE        // 상점 구매(차감)
+    SHOP_PURCHASE,       // 상점 구매(차감)
+    GROUP_CREATE         // 그룹 생성(차감)
 }

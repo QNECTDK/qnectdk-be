@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 /**
- * 상점 아이템 시드. 기동 시 상점이 비어있으면 캐릭터 16종(200P) + QR 장식 1종(150P)을 적재(멱등).
+ * 상점 아이템 시드. 기동 시 상점이 비어있으면 캐릭터 17종(200P) + QR 장식 1종(150P)을 적재(멱등).
  * 캐릭터 이미지는 프론트가 imageUrl 경로(/characters/{name}.png)로 매핑한다.
  */
 @Slf4j
@@ -41,7 +41,8 @@ public class ShopItemSeeder implements ApplicationRunner {
             new String[]{"라쿤", "raccoon"},
             new String[]{"레서판다", "redpanda"},
             new String[]{"돌고래", "dolphin"},
-            new String[]{"상어", "shark"}
+            new String[]{"상어", "shark"},
+            new String[]{"우파루파", "axolotl"}
     );
 
     private final ShopItemRepository shopItemRepository;
@@ -54,7 +55,7 @@ public class ShopItemSeeder implements ApplicationRunner {
             return;
         }
 
-        // 캐릭터 16종 (각 200P)
+        // 캐릭터 17종 (각 200P)
         for (String[] c : CHARACTERS) {
             String name = c[0];
             String imageUrl = "/characters/" + c[1] + ".png";

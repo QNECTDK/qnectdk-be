@@ -8,6 +8,8 @@ import com.qnectdk.domain.group.entity.FriendGroup;
 import com.qnectdk.domain.group.entity.FriendGroupMember;
 import com.qnectdk.domain.group.repository.FriendGroupMemberRepository;
 import com.qnectdk.domain.group.repository.FriendGroupRepository;
+import com.qnectdk.domain.point.entity.PointReason;
+import com.qnectdk.domain.point.service.PointService;
 import com.qnectdk.global.exception.BusinessException;
 import com.qnectdk.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -22,11 +24,13 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class GroupService {
 
-    private static final int FREE_GROUP_LIMIT = 3; // 무료 3개 제한 (결제 시 해제)
+    private static final int FREE_GROUP_LIMIT = 5; // 무료 5개 제한 (결제 시 해제)
+    private static final int GROUP_CREATE_COST = 10; // 그룹 생성 시 차감 포인트
 
     private final FriendGroupRepository groupRepository;
     private final FriendGroupMemberRepository memberRepository;
     private final FriendshipRepository friendshipRepository;
+    private final PointService pointService;
 
     @Transactional
     public GroupResponse createGroup(Long userId, String name, String hashtags) {
@@ -37,6 +41,7 @@ public class GroupService {
             throw new BusinessException(ErrorCode.DUPLICATE_GROUP_NAME);
         }
         FriendGroup saved = groupRepository.save(FriendGroup.create(userId, name, hashtags));
+        pointService.spend(userId, GROUP_CREATE_COST, PointReason.GROUP_CREATE, saved.getId());
         return GroupResponse.from(saved);
     }
 
@@ -53,6 +58,7 @@ public class GroupService {
             throw new BusinessException(ErrorCode.DUPLICATE_GROUP_NAME);
         }
         FriendGroup group = groupRepository.save(FriendGroup.create(userId, name, hashtags));
+        pointService.spend(userId, GROUP_CREATE_COST, PointReason.GROUP_CREATE, group.getId());
 
         // 2) 멤버 추가 (각각 ACCEPTED 친구 검증 + 중복 방지)
         List<GroupMemberResponse> memberResponses = new java.util.ArrayList<>();
