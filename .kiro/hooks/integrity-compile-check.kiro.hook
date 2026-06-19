@@ -1,0 +1,14 @@
+{
+  "enabled": true,
+  "name": "Integrity Compile Check on Stop",
+  "description": "에이전트 작업 종료 전 main+test 소스 전체 컴파일 정합성을 점검한다 (DB 불필요).",
+  "version": "1",
+  "when": {
+    "type": "agentStop"
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "./gradlew compileJava compileTestJava -q --console=plain",
+    "timeout": 240
+  }
+}
