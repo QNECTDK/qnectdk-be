@@ -1,3 +1,27 @@
+# 모든 텍스트 파일은 저장소에서 LF로 정규화 (Windows/WSL 혼용 시 CRLF↔LF 노이즈 방지)
+* text=auto eol=lf
+
+# 주요 소스/설정 확장자는 명시적으로 LF 고정
+*.java       text eol=lf
+*.http       text eol=lf
+*.md         text eol=lf
+*.yml        text eol=lf
+*.yaml       text eol=lf
+*.gradle     text eol=lf
+*.xml        text eol=lf
+*.json       text eol=lf
+*.properties text eol=lf
+*.sh         text eol=lf
+*.sql        text eol=lf
+
+# 셸 스크립트는 LF, Windows 배치는 CRLF 유지
 /gradlew text eol=lf
 *.bat text eol=crlf
-*.jar binary
+
+# 바이너리는 변환 금지
+*.jar  binary
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
