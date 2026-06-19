@@ -5,6 +5,8 @@ import com.qnectdk.domain.notification.service.NotificationService;
 import com.qnectdk.global.response.ApiResponse;
 import com.qnectdk.global.security.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -25,6 +27,9 @@ public class NotificationController {
     private final NotificationService notificationService;
 
     @Operation(summary = "내 알림 목록", description = "내 알림을 최신순으로 반환한다. type+refId로 화면 이동 결정.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "요청 성공")
+    })
     @GetMapping
     public ApiResponse<List<NotificationResponse>> getMyNotifications(
             @AuthenticationPrincipal CustomUserDetails user
@@ -33,6 +38,9 @@ public class NotificationController {
     }
 
     @Operation(summary = "안 읽은 알림 개수", description = "읽지 않은 알림 개수를 조회합니다.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "요청 성공")
+    })
     @GetMapping("/unread-count")
     public ApiResponse<Long> getUnreadCount(
             @AuthenticationPrincipal CustomUserDetails user
@@ -41,10 +49,15 @@ public class NotificationController {
     }
 
     @Operation(summary = "알림 읽음 처리", description = "읽은 알림을 읽음 상태로 변경한다.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "요청 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "남의 알림을 읽음 처리하려 함 (ACCESS_DENIED)"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "알림을 찾을 수 없음 (INVALID_INPUT)")
+    })
     @PatchMapping("/{notificationId}/read")
     public ApiResponse<Void> markAsRead(
             @AuthenticationPrincipal CustomUserDetails user,
-            @PathVariable Long notificationId
+            @Parameter(description = "알림 id", example = "1") @PathVariable Long notificationId
     ) {
         notificationService.markAsRead(user.getUserId(), notificationId);
         return ApiResponse.ok();

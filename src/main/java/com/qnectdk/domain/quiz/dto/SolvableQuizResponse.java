@@ -14,26 +14,26 @@ import java.util.Map;
  * solvable=false 면 응시 불가(프로필 미완성) — 열람만 가능.
  */
 public record SolvableQuizResponse(
-        @Schema(description = "퀴즈 ID") Long quizId,
-        @Schema(description = "퀴즈 주인 사용자 ID") Long ownerId,
-        @Schema(description = "퀴즈 주인 이름") String ownerName,
-        @Schema(description = "응시 가능 여부(false=프로필 미완성, 열람만)") boolean solvable,
+        @Schema(description = "퀴즈 ID", example = "1") Long quizId,
+        @Schema(description = "퀴즈 주인 사용자 ID", example = "1") Long ownerId,
+        @Schema(description = "퀴즈 주인 이름", example = "홍길동") String ownerName,
+        @Schema(description = "응시 가능 여부(false=프로필 미완성, 열람만)", example = "true") boolean solvable,
         @Schema(description = "문항 목록(정답 미포함)") List<Question> questions
 ) {
 
     public record Question(
-            @Schema(description = "문항 ID") Long questionId,
+            @Schema(description = "문항 ID", example = "1") Long questionId,
             @Schema(description = "문항 종류") QuestionType type,
-            @Schema(description = "질문") String content,
-            @Schema(description = "문항 순서") int seq,
+            @Schema(description = "질문", example = "내가 좋아하는 계절은?") String content,
+            @Schema(description = "문항 순서", example = "1") int seq,
             @Schema(description = "객관식 보기(OX는 빈 목록)") List<Option> options
     ) {
     }
 
     public record Option(
-            @Schema(description = "보기 ID") Long optionId,
-            @Schema(description = "보기 텍스트") String content,
-            @Schema(description = "보기 순서") int seq
+            @Schema(description = "보기 ID", example = "1") Long optionId,
+            @Schema(description = "보기 텍스트", example = "여름") String content,
+            @Schema(description = "보기 순서", example = "1") int seq
     ) {
     }
 

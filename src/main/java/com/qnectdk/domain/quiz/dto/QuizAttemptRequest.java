@@ -17,9 +17,9 @@ public record QuizAttemptRequest(
 ) {
 
     public record AnswerInput(
-            @Schema(description = "문항 ID")
+            @Schema(description = "문항 ID", example = "1")
             @NotNull Long questionId,
-            @Schema(description = "고른 답(객관식=보기 텍스트, OX=O/X)")
+            @Schema(description = "고른 답(객관식=보기 텍스트, OX=O/X)", example = "O")
             @NotBlank @Size(max = 255) String answer
     ) {
     }

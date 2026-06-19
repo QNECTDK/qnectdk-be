@@ -13,29 +13,29 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * 프로필 필드는 null, profileCompleted=false 로 내려준다.
  */
 public record ProfileResponse(
-        @Schema(description = "사용자 ID")
+        @Schema(description = "사용자 ID", example = "1")
         Long userId,
-        @Schema(description = "이름")
+        @Schema(description = "이름", example = "홍길동")
         String name,
-        @Schema(description = "나이(생년월일로 계산)")
+        @Schema(description = "나이(생년월일로 계산)", example = "23")
         int age,
-        @Schema(description = "띠(생년월일로 계산)")
+        @Schema(description = "띠(생년월일로 계산)", example = "토끼")
         String zodiac,
-        @Schema(description = "학교명")
+        @Schema(description = "학교명", example = "국민대학교")
         String school,
         @Schema(description = "성별")
         Gender gender,
-        @Schema(description = "MBTI")
+        @Schema(description = "MBTI", example = "ENFP")
         String mbti,
-        @Schema(description = "주량")
+        @Schema(description = "주량", example = "소주 3잔")
         String drinkLevel,
-        @Schema(description = "좋아하는 음식")
+        @Schema(description = "좋아하는 음식", example = "치킨")
         String favoriteFood,
-        @Schema(description = "프로필 이미지 URL")
+        @Schema(description = "프로필 이미지 URL", example = "http://localhost:8080/files/3f2a1b9c4e.jpg")
         String imageUrl,
-        @Schema(description = "QR/공유용 고유 코드")
+        @Schema(description = "QR/공유용 고유 코드", example = "Ab3xYz9Q")
         String publicCode,
-        @Schema(description = "온보딩 완료 여부(프로필 작성됨)")
+        @Schema(description = "온보딩 완료 여부(프로필 작성됨)", example = "true")
         boolean profileCompleted
 ) {
 

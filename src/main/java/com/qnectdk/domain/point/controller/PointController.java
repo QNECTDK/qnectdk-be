@@ -7,6 +7,7 @@ import com.qnectdk.domain.point.service.PointService;
 import com.qnectdk.global.response.ApiResponse;
 import com.qnectdk.global.security.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -29,6 +30,9 @@ public class PointController {
     private final AttendanceService attendanceService;
 
     @Operation(summary = "내 포인트 잔액", description = "현재 포인트 잔액을 반환한다(포인트 값).")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "요청 성공")
+    })
     @GetMapping("/balance")
     public ApiResponse<PointBalanceResponse> getBalance(
             @AuthenticationPrincipal CustomUserDetails user
@@ -38,6 +42,9 @@ public class PointController {
     }
 
     @Operation(summary = "포인트 거래 내역", description = "통장 내역처럼 적립/차감 기록을 최신순으로 반환한다.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "요청 성공")
+    })
     @GetMapping("/transactions")
     public ApiResponse<List<PointTransactionResponse>> getTransactions(
             @AuthenticationPrincipal CustomUserDetails user
@@ -46,6 +53,9 @@ public class PointController {
     }
 
     @Operation(summary = "출석 체크", description = "하루 1회 5P 지급. 이미 출석했으면 earnedToday=false(에러 아님).")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "요청 성공")
+    })
     @PostMapping("/attendance")
     public ApiResponse<AttendanceResult> checkAttendance(
             @AuthenticationPrincipal CustomUserDetails user

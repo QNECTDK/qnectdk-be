@@ -33,6 +33,8 @@ public class AuthController {
 
     @Operation(summary = "회원가입", description = "신규 회원을 등록하고 가입 즉시 액세스/리프레시 토큰을 발급한다.")
     @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201",
+                    description = "회원가입 성공"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409",
                     description = "이미 사용 중인 아이디(DUPLICATE_LOGIN_ID) 또는 전화번호(DUPLICATE_PHONE)"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400",
@@ -45,6 +47,12 @@ public class AuthController {
     }
 
     @Operation(summary = "아이디 중복확인", description = "주어진 로그인 아이디의 사용 가능 여부를 확인한다.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200",
+                    description = "요청 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400",
+                    description = "아이디 형식이 올바르지 않음 (INVALID_INPUT)")
+    })
     @GetMapping("/check-login-id")
     public ApiResponse<CheckLoginIdResponse> checkLoginId(
             @Parameter(description = "중복 확인할 로그인 아이디", example = "tester01")
@@ -53,26 +61,34 @@ public class AuthController {
     }
 
     @Operation(summary = "로그인", description = "아이디/비밀번호로 인증하고 토큰을 발급한다.")
-    @ApiResponses(
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200",
+                    description = "로그인 성공"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401",
                     description = "아이디 또는 비밀번호 불일치(INVALID_CREDENTIALS)")
-    )
+    })
     @PostMapping("/login")
     public ApiResponse<TokenResponse> login(@Valid @RequestBody LoginRequest request) {
         return ApiResponse.ok(authService.login(request));
     }
 
     @Operation(summary = "토큰 갱신", description = "리프레시 토큰으로 새 토큰을 발급한다(리프레시 토큰 회전).")
-    @ApiResponses(
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200",
+                    description = "토큰 갱신 성공"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401",
-                    description = "유효하지 않거나 만료된 리프레시 토큰")
-    )
+                    description = "존재하지 않는 토큰(INVALID_TOKEN) 또는 만료된 토큰(EXPIRED_TOKEN)")
+    })
     @PostMapping("/refresh")
     public ApiResponse<TokenResponse> refresh(@Valid @RequestBody RefreshRequest request) {
         return ApiResponse.ok(authService.refresh(request.refreshToken()));
     }
 
     @Operation(summary = "로그아웃", description = "리프레시 토큰을 무효화한다.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200",
+                    description = "요청 성공")
+    })
     @PostMapping("/logout")
     public ApiResponse<Void> logout(@Valid @RequestBody LogoutRequest request) {
         authService.logout(request.refreshToken());

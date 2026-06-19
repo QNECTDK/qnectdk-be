@@ -10,12 +10,12 @@ import java.time.LocalDate;
  * 오늘의 데일리 질문 + 내 답변 상태. 통계는 별도 조회(내가 답해야 공개)로 분리한다.
  */
 public record DailyTodayResponse(
-        @Schema(description = "데일리 퀴즈 ID") Long dailyQuizId,
-        @Schema(description = "출제 날짜") LocalDate quizDate,
-        @Schema(description = "질문") String content,
-        @Schema(description = "선택지 A") String optionA,
-        @Schema(description = "선택지 B") String optionB,
-        @Schema(description = "내가 답했는지 여부") boolean answered,
+        @Schema(description = "데일리 퀴즈 ID", example = "1") Long dailyQuizId,
+        @Schema(description = "출제 날짜", example = "2026-06-19") LocalDate quizDate,
+        @Schema(description = "질문", example = "여름 vs 겨울?") String content,
+        @Schema(description = "선택지 A", example = "여름") String optionA,
+        @Schema(description = "선택지 B", example = "겨울") String optionB,
+        @Schema(description = "내가 답했는지 여부", example = "true") boolean answered,
         @Schema(description = "내 선택(미답변 시 null)") DailyChoice mySelection
 ) {
 

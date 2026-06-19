@@ -20,11 +20,11 @@ public record QuizSaveRequest(
     public record QuestionInput(
             @Schema(description = "문항 종류(MULTIPLE/OX)")
             @NotNull QuestionType type,
-            @Schema(description = "질문")
+            @Schema(description = "질문", example = "내가 좋아하는 계절은?")
             @NotBlank @Size(max = 255) String content,
-            @Schema(description = "정답(OX=O/X, 객관식=정답 보기 텍스트)")
+            @Schema(description = "정답(OX=O/X, 객관식=정답 보기 텍스트)", example = "O")
             @NotBlank @Size(max = 255) String correctAnswer,
-            @Schema(description = "필수 출제 여부")
+            @Schema(description = "필수 출제 여부", example = "true")
             boolean required,
             @Schema(description = "객관식 보기(OX는 생략/빈 목록)")
             @Valid List<OptionInput> options
@@ -32,9 +32,9 @@ public record QuizSaveRequest(
     }
 
     public record OptionInput(
-            @Schema(description = "보기 텍스트")
+            @Schema(description = "보기 텍스트", example = "여름")
             @NotBlank @Size(max = 255) String content,
-            @Schema(description = "정답 보기 여부")
+            @Schema(description = "정답 보기 여부", example = "true")
             boolean correct
     ) {
     }
