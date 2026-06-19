@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "name": "Block Arbitrary Commit",
+  "description": "셸 명령 실행 전, 임의 커밋 금지 규칙을 확인한다. git commit/--amend/force-push/reset --hard는 사용자가 명시적으로 허용한 경우에만 실행한다.",
+  "version": "1",
+  "when": {
+    "type": "preToolUse",
+    "toolTypes": [
+      "shell"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "실행하려는 셸 명령을 확인하세요. 만약 git commit, git commit --amend, force-push(--force/--force-with-lease/-f), 또는 git reset --hard 라면: 사용자가 이번 대화에서 \"커밋해\" 등으로 명시적으로 허용했는지 확인하세요. 명시적 허용이 없으면 실행하지 말고 사용자에게 먼저 확인을 요청하세요. 그 외 일반 명령(gradlew, docker compose 등)은 그대로 진행하세요. docker compose down -v 처럼 볼륨을 삭제하는 명령도 사용자 확인 없이는 실행하지 마세요."
+  }
+}
