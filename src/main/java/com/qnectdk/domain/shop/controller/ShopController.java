@@ -14,9 +14,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @Tag(name = "상점", description = """
-        캐릭터/QR 꾸미기 아이템을 포인트로 구매·장착. 장착 = 그 캐릭터를 내 프로필 사진으로 등록.
+        캐릭터 아이템을 포인트로 구매·장착. 장착 = 그 캐릭터를 내 프로필 사진으로 등록.
         [흐름] 목록(GET /items) → 구매(POST /items/{id}/purchase, 포인트 차감) → 보유(GET /my-items) → 장착/해제.
-        캐릭터: 생년월일 띠 캐릭터가 기본 프사(무료). 16종 전부 200P 구매 가능.
+        캐릭터: 생년월일 띠 캐릭터가 기본 프사(무료). 17종 전부 200P 구매 가능.
         장착은 type별 하나만 — 다른 캐릭터를 장착하면 기존 것은 자동 해제(= 캐릭터 교체).
         해제하면 장착이 풀리고 기본 띠 캐릭터로 복귀.imageUrl은 캐릭터 식별용 경로(/characters/{key}.png)이며,실제 이미지는 프론트에서 관리한다.
         """)
@@ -27,7 +27,7 @@ public class ShopController {
 
     private final ShopService shopService;
 
-    @Operation(summary = "상점 아이템 목록", description = "판매중인 캐릭터(200P)·QR 꾸미기(150P)을 반환한다.")
+    @Operation(summary = "상점 아이템 목록", description = "판매중인 캐릭터(200P)를 반환한다.")
     @GetMapping("/items")
     public ApiResponse<List<ShopItemResponse>> getItems() {
         return ApiResponse.ok(shopService.getItems());
