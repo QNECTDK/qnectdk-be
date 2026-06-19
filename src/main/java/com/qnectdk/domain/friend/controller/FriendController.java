@@ -18,7 +18,12 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Tag(name = "친구", description = "친구 추가/수락/거절, 친구 목록, 메모 API")
+@Tag(name = "친구", description = """
+        친구 관계 관리.
+        [흐름] 친구요청(POST /api/friends) → 받은요청 조회(GET /requests/received) → 수락(PATCH /{id}/accept) 또는 거절.
+        수락 시 자동: 요청자에게 알림 발송 + 양쪽 30일 리마인드 예약 + 친구수 마일스톤 포인트 체크.
+        친구 프로필 상세(학교·MBTI 등)는 이 API에 없음 → A의 프로필 API와 조합. 자동완성(/summaries)은 id+이름만 제공.
+        """)
 @RestController
 @RequestMapping("/api/friends")
 @RequiredArgsConstructor

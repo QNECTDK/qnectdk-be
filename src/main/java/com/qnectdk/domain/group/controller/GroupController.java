@@ -19,7 +19,13 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Tag(name = "그룹", description = "그룹 생성/수정/삭제/검색, 멤버 관리 API")
+@Tag(name = "그룹", description = """
+        친구를 묶는 그룹(카테고리). 무료 5개, 초과 시 생성마다 10P 차감.
+        [생성 진입 2가지] (1) 그룹 생성 화면: 친구 이름 '검색'으로 멤버 등록  (2) 친구 목록 화면: 친구 여러 명 '선택' 후 그룹 생성.
+        두 경로 모두 friendIds(친구 id 배열)를 담아 POST /api/groups/with-members 한 번 호출(권장).
+        멤버는 내 ACCEPTED 친구만 가능. 그룹명은 사용자별 중복 불가.
+        인원수는 멤버 목록 길이로 카운트(저장값 없음). 해시태그는 통짜 텍스트(프론트가 분리 렌더).
+        """)
 @RestController
 @RequestMapping("/api/groups")
 @RequiredArgsConstructor

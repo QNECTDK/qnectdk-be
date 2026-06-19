@@ -12,7 +12,11 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Tag(name = "알림", description = "인앱 알림(벨) 목록/읽음 API")
+@Tag(name = "알림", description = """
+        인앱 알림(벨). 백엔드가 이벤트 발생 시 자동 생성하며, 프론트는 조회/읽음만.
+        [흐름] 목록(GET /api/notifications) + 안읽은수(GET /unread-count, 벨 배지) → 클릭 시 읽음(PATCH /{id}/read).
+        type+refId로 이동 화면 결정(NotificationType 스키마 참고). 여러 명이 추가해도 한 명당 한 줄씩 쌓임.
+        """)
 @RestController
 @RequestMapping("/api/notifications")
 @RequiredArgsConstructor
