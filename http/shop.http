@@ -1,0 +1,70 @@
+# 상점(캐릭터/QR 꾸미기) + QR 공유 흐름 테스트
+# 같은 파일 안에서 먼저 "로그인"을 실행해 토큰을 얻은 뒤 사용하세요.
+# 구매는 포인트가 필요합니다 — 잔액이 모자라면 먼저 point.http(출석/적립)로 포인트를 쌓으세요.
+
+@baseUrl = http://localhost:8080
+@loginId = tester01
+@password = test1234
+
+### 로그인 (토큰 발급)
+# @name login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "loginId": "{{loginId}}",
+  "password": "{{password}}"
+}
+
+### 상점 아이템 목록 (캐릭터 200P / QR 꾸미기 150P)
+# @name items
+GET {{baseUrl}}/api/shop/items
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### 내 보유 아이템 + 적용(isEquipped) 상태
+GET {{baseUrl}}/api/shop/my-items
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### 아이템 구매 (목록 첫번째 itemId 사용) — 잔액부족=INSUFFICIENT_POINT
+# @name purchase
+POST {{baseUrl}}/api/shop/items/{{items.response.body.$.data[0].itemId}}/purchase
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### 같은 아이템 재구매 시도 → 이미 보유(RESOURCE_CONFLICT) 여야 함
+POST {{baseUrl}}/api/shop/items/{{items.response.body.$.data[0].itemId}}/purchase
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### 없는 아이템 구매 시도 → 거부(현재 INVALID_INPUT 400)
+POST {{baseUrl}}/api/shop/items/999999/purchase
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### 아이템 적용(장착) — 방금 구매한 userItemId 사용. 같은 type 기존 장착은 자동 해제
+PATCH {{baseUrl}}/api/shop/my-items/{{purchase.response.body.$.data.userItemId}}/equip
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### 적용 후 보유 목록 재확인 (해당 항목 isEquipped=true 기대)
+GET {{baseUrl}}/api/shop/my-items
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### 아이템 해제 (캐릭터는 기본 띠 캐릭터로 복귀)
+PATCH {{baseUrl}}/api/shop/my-items/{{purchase.response.body.$.data.userItemId}}/unequip
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### 남의 userItemId 장착 시도 → ACCESS_DENIED 기대 (존재하지 않거나 타인 소유)
+PATCH {{baseUrl}}/api/shop/my-items/1/equip
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+# ───────────────────────────────────────────────
+# QR/공유는 별도 도메인(profile)입니다. "QR 바꾸기"의 실제 동작 확인용.
+# ───────────────────────────────────────────────
+
+### 내 공유 코드/URL 조회 — 백엔드는 publicCode+shareUrl만 준다(QR 이미지는 프론트 생성)
+GET {{baseUrl}}/api/profiles/me/share
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### (참고) QR 꾸미기를 바꿔도 /me/share 응답에는 반영되지 않음 — 통합 갭 확인용
+GET {{baseUrl}}/api/profiles/me/share
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### (인증) 토큰 없이 구매 시도 → 401
+POST {{baseUrl}}/api/shop/items/1/purchase

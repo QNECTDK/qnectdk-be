@@ -47,7 +47,25 @@ public enum ErrorCode {
     // daily
     DAILY_QUIZ_NOT_FOUND(HttpStatus.NOT_FOUND, "오늘의 데일리 퀴즈가 없습니다."),
     DAILY_ALREADY_ANSWERED(HttpStatus.CONFLICT, "이미 오늘의 데일리에 답했습니다."),
-    DAILY_NOT_ANSWERED_YET(HttpStatus.FORBIDDEN, "먼저 답해야 결과를 볼 수 있습니다.");
+    DAILY_NOT_ANSWERED_YET(HttpStatus.FORBIDDEN, "먼저 답해야 결과를 볼 수 있습니다."),
+
+    // friend (B 도메인)
+    FRIENDSHIP_NOT_FOUND(HttpStatus.NOT_FOUND, "친구 요청을 찾을 수 없습니다."),
+    ALREADY_FRIENDS(HttpStatus.CONFLICT, "이미 친구이거나 요청이 존재합니다."),
+    FRIENDSHIP_NOT_PENDING(HttpStatus.CONFLICT, "대기 중인 요청만 처리할 수 있습니다."),
+    NOT_FRIENDSHIP_ADDRESSEE(HttpStatus.FORBIDDEN, "요청을 받은 사람만 수락/거절할 수 있습니다."),
+    MEMO_NOT_FOUND(HttpStatus.NOT_FOUND, "메모를 찾을 수 없습니다."),
+
+    // group (B 도메인)
+    GROUP_NOT_FOUND(HttpStatus.NOT_FOUND, "그룹을 찾을 수 없습니다."),
+    NOT_GROUP_OWNER(HttpStatus.FORBIDDEN, "본인의 그룹만 관리할 수 있습니다."),
+    DUPLICATE_GROUP_NAME(HttpStatus.CONFLICT, "이미 같은 이름의 그룹이 있습니다."),
+    NOT_ACCEPTED_FRIEND(HttpStatus.BAD_REQUEST, "수락된 친구만 그룹에 추가할 수 있습니다."),
+    ALREADY_GROUP_MEMBER(HttpStatus.CONFLICT, "이미 그룹에 추가된 친구입니다."),
+    GROUP_MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "그룹에 없는 멤버입니다."),
+
+    // point (B 도메인)
+    INSUFFICIENT_POINT(HttpStatus.CONFLICT, "포인트가 부족합니다.");
 
     private final HttpStatus status;
     private final String message;

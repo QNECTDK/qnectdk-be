@@ -47,6 +47,9 @@ public class User extends BaseTimeEntity {
     @Column(name = "public_code", nullable = false, unique = true, length = 16)
     private String publicCode;
 
+    @Column(name = "point_balance", nullable = false)
+    private int pointBalance;
+
     @Builder
     private User(String loginId, String phone, String passwordHash, String name,
                  LocalDate birthDate, String publicCode) {
@@ -72,5 +75,9 @@ public class User extends BaseTimeEntity {
 
     public void changePassword(String newPasswordHash) {
         this.passwordHash = newPasswordHash;
+    }
+
+    public void addPoint(int amount) {
+        this.pointBalance += amount;
     }
 }
