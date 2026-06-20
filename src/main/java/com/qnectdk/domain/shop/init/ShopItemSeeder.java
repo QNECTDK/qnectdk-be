@@ -14,7 +14,7 @@ import java.util.List;
 
 /**
  * 상점 아이템 시드. 기동 시 상점이 비어있으면 캐릭터 17종(200P)을 적재(멱등).
- * 캐릭터 이미지는 프론트가 imageUrl 경로(/characters/{name}.png)로 매핑한다.
+ * 캐릭터 이미지는 프론트가 characterId로 매핑한다.
  */
 @Slf4j
 @Component

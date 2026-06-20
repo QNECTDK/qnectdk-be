@@ -46,8 +46,8 @@ public class Profile extends BaseTimeEntity {
     @Column(name = "favorite_food", length = 30)
     private String favoriteFood;
 
-    @Column(name = "image_url", length = 512)
-    private String imageUrl;
+    @Column(name = "character_id", length = 20)
+    private String characterId;
 
     @Builder
     private Profile(Long userId, String school, Gender gender, String mbti,
@@ -81,7 +81,7 @@ public class Profile extends BaseTimeEntity {
         this.favoriteFood = favoriteFood;
     }
 
-    public void updateImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
+    public void updateCharacterId(String characterId) {
+        this.characterId = characterId;
     }
 }

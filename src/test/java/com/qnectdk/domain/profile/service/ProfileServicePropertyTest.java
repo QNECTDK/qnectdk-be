@@ -11,6 +11,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.qnectdk.domain.interest.service.InterestService;
 import com.qnectdk.domain.point.entity.PointPolicy;
 import com.qnectdk.domain.point.entity.PointReason;
 import com.qnectdk.domain.point.service.PointService;
@@ -50,7 +51,8 @@ class ProfileServicePropertyTest {
     private ProfileService newService(ProfileRepository profileRepository,
                                       UserQueryService userQueryService,
                                       PointService pointService) {
-        return new ProfileService(profileRepository, userQueryService, pointService, SHARE_BASE_URL);
+        return new ProfileService(
+                profileRepository, userQueryService, pointService, SHARE_BASE_URL, mock(InterestService.class));
     }
 
     private ProfileRequest sampleRequest() {
@@ -145,7 +147,7 @@ class ProfileServicePropertyTest {
             ImageResponse response = service.setCharacterImage(userId, characterId);
 
             assertThat(response.imageUrl()).isEqualTo(expectedUrl);
-            verify(profile, times(1)).updateImageUrl(expectedUrl);
+            verify(profile, times(1)).updateCharacterId(expectedUrl);
         } else {
             assertThatThrownBy(() -> service.setCharacterImage(userId, characterId))
                     .isInstanceOf(BusinessException.class)

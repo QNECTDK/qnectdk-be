@@ -19,6 +19,10 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.qnectdk.domain.interest.service.InterestService;
+import com.qnectdk.domain.profile.dto.PersonInfo;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)
@@ -28,15 +32,18 @@ public class ProfileService {
     private final UserQueryService userQueryService;
     private final PointService pointService;
     private final String shareBaseUrl;
+    private final InterestService interestService;
 
     public ProfileService(ProfileRepository profileRepository,
                           UserQueryService userQueryService,
                           PointService pointService,
-                          @Value("${app.share.base-url}") String shareBaseUrl) {
+                          @Value("${app.share.base-url}") String shareBaseUrl,
+                          InterestService interestService) {
         this.profileRepository = profileRepository;
         this.userQueryService = userQueryService;
         this.pointService = pointService;
         this.shareBaseUrl = shareBaseUrl;
+        this.interestService = interestService;
     }
 
     /**
@@ -80,7 +87,7 @@ public class ProfileService {
         CharacterImage character = CharacterImage.findById(characterId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_INPUT));
         Profile profile = getByUserIdOrThrow(userId);
-        profile.updateImageUrl(character.getImageUrl());
+        profile.updateCharacterId(character.getCharacterId());
         return new ImageResponse(character.getImageUrl());
     }
 
@@ -104,4 +111,44 @@ public class ProfileService {
         return profileRepository.findByUserId(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.PROFILE_NOT_FOUND));
     }
+
+    /**
+     * 여러 userId의 person 정보를 한 번에 조회 (친구·그룹 카드 조립용).
+     * user(name) + profile(school/gender/mbti/characterId) + interest(이름들)를 합친다.
+     * 프로필 미작성 사용자는 profile 필드가 null로 채워진다.
+     */
+    public List<PersonInfo> getPersonsByIds(List<Long> userIds) {
+        if (userIds == null || userIds.isEmpty()) {
+            return List.of();
+        }
+        // 1) user 정보 (name, birthDate) — A의 UserQueryService
+        Map<Long, UserSummary> userMap = userQueryService.getByIds(userIds).stream()
+                .collect(Collectors.toMap(UserSummary::userId, u -> u));
+        // 2) profile 정보 (school, gender, mbti, characterId)
+        Map<Long, Profile> profileMap = profileRepository.findByUserIdIn(userIds).stream()
+                .collect(Collectors.toMap(Profile::getUserId, p -> p));
+        // 3) interest 이름들
+        Map<Long, List<String>> interestMap = interestService.getNamesByUserIds(userIds);
+
+        // 4) 합치기
+        return userIds.stream()
+                .map(uid -> {
+                    UserSummary user = userMap.get(uid);
+                    if (user == null) return null; // 없는 사용자 스킵
+                    Profile profile = profileMap.get(uid);
+                    return new PersonInfo(
+                            uid,
+                            user.name(),
+                            profile != null ? profile.getCharacterId() : null,
+                            profile != null ? profile.getSchool() : null,
+                            profile != null && profile.getGender() != null ? profile.getGender().name() : null,
+                            user.birthDate().getYear(),
+                            profile != null ? profile.getMbti() : null,
+                            interestMap.getOrDefault(uid, List.of())
+                    );
+                })
+                .filter(java.util.Objects::nonNull)
+                .toList();
+    }
+
 }

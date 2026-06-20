@@ -50,7 +50,7 @@ public record ProfileResponse(
                 profile.getMbti(),
                 profile.getDrinkLevel(),
                 profile.getFavoriteFood(),
-                profile.getImageUrl(),
+                profile.getCharacterId(),
                 user.publicCode(),
                 true
         );

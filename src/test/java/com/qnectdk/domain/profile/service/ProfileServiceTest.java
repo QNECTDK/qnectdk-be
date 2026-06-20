@@ -11,6 +11,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.qnectdk.domain.interest.service.InterestService;
 import com.qnectdk.domain.point.entity.PointPolicy;
 import com.qnectdk.domain.point.entity.PointReason;
 import com.qnectdk.domain.point.service.PointService;
@@ -58,12 +59,15 @@ class ProfileServiceTest {
     private UserQueryService userQueryService;
     @Mock
     private PointService pointService;
+    @Mock
+    private InterestService interestService;
 
     private ProfileService profileService;
 
     @BeforeEach
     void setUp() {
-        profileService = new ProfileService(profileRepository, userQueryService, pointService, SHARE_BASE_URL);
+        profileService = new ProfileService(
+                profileRepository, userQueryService, pointService, SHARE_BASE_URL, interestService);
     }
 
     private ProfileRequest sampleRequest() {
@@ -140,7 +144,7 @@ class ProfileServiceTest {
         ImageResponse response = profileService.setCharacterImage(userId, target.getCharacterId());
 
         assertThat(response.imageUrl()).isEqualTo(target.getImageUrl());
-        assertThat(profile.getImageUrl()).isEqualTo(target.getImageUrl());
+        assertThat(profile.getCharacterId()).isEqualTo(target.getCharacterId());
     }
 
     @Test
