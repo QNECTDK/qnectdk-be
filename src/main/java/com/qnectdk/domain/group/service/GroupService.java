@@ -16,7 +16,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.qnectdk.domain.group.dto.GroupWithMembersResponse;
-
+import java.util.Collection;
+import java.util.Map;
 import java.util.List;
 
 @Service
@@ -136,6 +137,21 @@ public class GroupService {
         FriendGroup group = getOwnedGroup(userId, groupId);
         return memberRepository.findByGroupId(group.getId()).stream()
                 .map(GroupMemberResponse::from).toList();
+    }
+
+    /**
+     * viewer의 그룹들 기준, 각 friend가 속한 그룹 이름 목록(groupTags).
+     * friendId → [그룹이름들]. 어느 그룹에도 없는 friend는 맵에 없음.
+     */
+    public Map<Long, List<String>> getGroupNamesByMember(Long viewerId, Collection<Long> friendIds) {
+        if (friendIds == null || friendIds.isEmpty()) {
+            return Map.of();
+        }
+        return memberRepository.findFriendGroupNames(viewerId, friendIds).stream()
+                .collect(Collectors.groupingBy(
+                        row -> (Long) row[0],
+                        Collectors.mapping(row -> (String) row[1], Collectors.toList())
+                ));
     }
 
     private FriendGroup getOwnedGroup(Long userId, Long groupId) {
