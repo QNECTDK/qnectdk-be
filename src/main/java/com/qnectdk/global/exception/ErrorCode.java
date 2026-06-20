@@ -32,10 +32,6 @@ public enum ErrorCode {
     // interest
     INTEREST_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 관심사가 포함되어 있습니다."),
 
-    // storage
-    INVALID_FILE(HttpStatus.BAD_REQUEST, "유효하지 않은 파일입니다."),
-    FILE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "파일 업로드에 실패했습니다."),
-
     // quiz
     QUIZ_NOT_FOUND(HttpStatus.NOT_FOUND, "퀴즈를 찾을 수 없습니다."),
     QUIZ_ATTEMPT_NOT_FOUND(HttpStatus.NOT_FOUND, "퀴즈 응시 기록을 찾을 수 없습니다."),
