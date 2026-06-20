@@ -16,16 +16,16 @@ public record AiQuizDraftResponse(
 
     public record DraftQuestion(
             @Schema(description = "문항 종류(MULTIPLE/OX)") QuestionType type,
-            @Schema(description = "질문") String content,
-            @Schema(description = "정답(OX=O/X, 객관식=정답 보기 텍스트)") String correctAnswer,
-            @Schema(description = "필수 출제 여부") boolean required,
+            @Schema(description = "질문", example = "내가 좋아하는 계절은?") String content,
+            @Schema(description = "정답(OX=O/X, 객관식=정답 보기 텍스트)", example = "O") String correctAnswer,
+            @Schema(description = "필수 출제 여부", example = "true") boolean required,
             @Schema(description = "객관식 보기(2~4개, OX는 빈 목록)") List<DraftOption> options
     ) {
     }
 
     public record DraftOption(
-            @Schema(description = "보기 텍스트") String content,
-            @Schema(description = "정답 보기 여부") boolean correct
+            @Schema(description = "보기 텍스트", example = "여름") String content,
+            @Schema(description = "정답 보기 여부", example = "true") boolean correct
     ) {
     }
 
