@@ -23,25 +23,27 @@ public class ShopItemSeeder implements ApplicationRunner {
 
     private static final int CHARACTER_PRICE = 200;
 
-    // {표시이름, 이미지키}
+    // {표시이름, characterId}
     private static final List<String[]> CHARACTERS = List.of(
-            new String[]{"쥐", "rat"},
-            new String[]{"소", "ox"},
-            new String[]{"호랑이", "tiger"},
-            new String[]{"토끼", "rabbit"},
-            new String[]{"용", "dragon"},
-            new String[]{"뱀", "snake"},
-            new String[]{"말", "horse"},
-            new String[]{"양", "sheep"},
-            new String[]{"원숭이", "monkey"},
-            new String[]{"닭", "rooster"},
-            new String[]{"개", "dog"},
-            new String[]{"돼지", "pig"},
-            new String[]{"라쿤", "raccoon"},
-            new String[]{"레서판다", "redpanda"},
-            new String[]{"돌고래", "dolphin"},
-            new String[]{"상어", "shark"},
-            new String[]{"우파루파", "axolotl"}
+            new String[]{"쥐", "character01"},
+            new String[]{"소", "character02"},
+            new String[]{"호랑이", "character03"},
+            new String[]{"토끼", "character04"},
+            new String[]{"용", "character05"},
+            new String[]{"뱀", "character06"},
+            new String[]{"말", "character07"},
+            new String[]{"양", "character08"},
+            new String[]{"원숭이", "character09"},
+            new String[]{"닭", "character10"},
+            new String[]{"개", "character11"},
+            new String[]{"돼지", "character12"},
+            new String[]{"코알라", "character13"},
+            new String[]{"사자", "character14"},
+            new String[]{"라쿤", "character15"},
+            new String[]{"레서판다", "character16"},
+            new String[]{"돌고래", "character17"},
+            new String[]{"상어", "character18"},
+            new String[]{"우파루파", "character19"}
     );
 
     private final ShopItemRepository shopItemRepository;
@@ -54,11 +56,11 @@ public class ShopItemSeeder implements ApplicationRunner {
             return;
         }
 
-        // 캐릭터 17종 (각 200P)
+        // 캐릭터 19종 (각 200P)
         for (String[] c : CHARACTERS) {
             String name = c[0];
-            String imageUrl = "/characters/" + c[1] + ".png";
-            shopItemRepository.save(ShopItem.create(name, ItemType.CHARACTER, imageUrl, CHARACTER_PRICE));
+            String characterId = c[1];
+            shopItemRepository.save(ShopItem.create(name, ItemType.CHARACTER, characterId, CHARACTER_PRICE));
         }
 
         log.info("상점 시드 적재 완료: 캐릭터 {}종", CHARACTERS.size());
