@@ -4,6 +4,7 @@ import com.qnectdk.domain.profile.entity.Gender;
 import com.qnectdk.domain.profile.entity.Profile;
 import com.qnectdk.domain.user.dto.UserSummary;
 import com.qnectdk.global.util.AgeUtil;
+import com.qnectdk.global.util.ZodiacCharacterUtil;
 import com.qnectdk.global.util.ZodiacUtil;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -50,7 +51,7 @@ public record ProfileResponse(
                 profile.getMbti(),
                 profile.getDrinkLevel(),
                 profile.getFavoriteFood(),
-                profile.getCharacterId(),
+                ZodiacCharacterUtil.resolve(profile.getCharacterId(), user.birthDate()),
                 user.publicCode(),
                 true
         );
@@ -63,7 +64,7 @@ public record ProfileResponse(
                 AgeUtil.of(user.birthDate()),
                 ZodiacUtil.of(user.birthDate()),
                 null, null, null, null, null,
-                null,
+                ZodiacCharacterUtil.resolve(null, user.birthDate()),
                 user.publicCode(),
                 false
         );

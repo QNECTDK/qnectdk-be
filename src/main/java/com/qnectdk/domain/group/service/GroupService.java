@@ -4,6 +4,7 @@ import com.qnectdk.domain.friend.entity.FriendshipStatus;
 import com.qnectdk.domain.friend.repository.FriendshipRepository;
 import com.qnectdk.domain.group.dto.GroupMemberResponse;
 import com.qnectdk.domain.group.dto.GroupResponse;
+import com.qnectdk.domain.group.dto.GroupSummaryResponse;
 import com.qnectdk.domain.group.entity.FriendGroup;
 import com.qnectdk.domain.group.entity.FriendGroupMember;
 import com.qnectdk.domain.group.repository.FriendGroupMemberRepository;
@@ -19,6 +20,7 @@ import com.qnectdk.domain.group.dto.GroupWithMembersResponse;
 import java.util.Collection;
 import java.util.Map;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -49,14 +51,14 @@ public class GroupService {
     // 그룹 생성 + 멤버 여러 명을 한 번에 (한 트랜잭션)
     @Transactional
     public GroupWithMembersResponse createGroupWithMembers(
-            Long userId, String name, String hashtags, List<Long> friendIds) {
+            Long userId, String name, List<String> hashtags, List<Long> friendIds) {
 
         // 1) 그룹 생성 (무료 개수 초과 시 차감 + 이름 중복 검증 포함)
         boolean overFreeLimit = groupRepository.countByUserId(userId) >= FREE_GROUP_LIMIT;
         if (groupRepository.existsByUserIdAndName(userId, name)) {
             throw new BusinessException(ErrorCode.DUPLICATE_GROUP_NAME);
         }
-        FriendGroup group = groupRepository.save(FriendGroup.create(userId, name, hashtags));
+        FriendGroup group = groupRepository.save(FriendGroup.create(userId, name, joinHashtags(hashtags)));
         if (overFreeLimit) {
             pointService.spend(userId, GROUP_CREATE_COST, PointReason.GROUP_CREATE, group.getId());
         }
@@ -100,8 +102,22 @@ public class GroupService {
         groupRepository.delete(group);
     }
 
-    public List<GroupResponse> getMyGroups(Long userId) {
-        return groupRepository.findByUserId(userId).stream().map(GroupResponse::from).toList();
+    public List<GroupSummaryResponse> getMyGroups(Long userId) {
+        List<FriendGroup> groups = groupRepository.findByUserId(userId);
+        if (groups.isEmpty()) {
+            return List.of();
+        }
+        List<Long> groupIds = groups.stream().map(FriendGroup::getId).toList();
+        Map<Long, Long> countByGroupId = memberRepository.countByGroupIdIn(groupIds).stream()
+                .collect(Collectors.toMap(row -> (Long) row[0], row -> (Long) row[1]));
+        return groups.stream()
+                .map(g -> GroupSummaryResponse.from(g, countByGroupId.getOrDefault(g.getId(), 0L).intValue()))
+                .toList();
+    }
+
+    /** 본인 소유 그룹 단건 조회 (이름 등 기본 정보용). */
+    public GroupResponse getGroup(Long userId, Long groupId) {
+        return GroupResponse.from(getOwnedGroup(userId, groupId));
     }
 
     public List<GroupResponse> searchByName(Long userId, String keyword) {
@@ -152,6 +168,17 @@ public class GroupService {
                         row -> (Long) row[0],
                         Collectors.mapping(row -> (String) row[1], Collectors.toList())
                 ));
+    }
+
+    private static String joinHashtags(List<String> hashtags) {
+        if (hashtags == null || hashtags.isEmpty()) {
+            return null;
+        }
+        String joined = hashtags.stream()
+                .filter(tag -> tag != null && !tag.isBlank())
+                .map(tag -> tag.startsWith("#") ? tag : "#" + tag)
+                .collect(Collectors.joining(" "));
+        return joined.isBlank() ? null : joined;
     }
 
     private FriendGroup getOwnedGroup(Long userId, Long groupId) {

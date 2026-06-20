@@ -22,6 +22,18 @@ public interface FriendGroupMemberRepository extends JpaRepository<FriendGroupMe
             @org.springframework.data.repository.query.Param("viewerId") Long viewerId,
             @org.springframework.data.repository.query.Param("friendIds") java.util.Collection<Long> friendIds);
 
+    /**
+     * 그룹 id들의 멤버 수를 한 번에 집계 (목록 화면 memberCount용, N+1 방지).
+     */
+    @org.springframework.data.jpa.repository.Query("""
+            SELECT m.groupId, COUNT(m)
+            FROM FriendGroupMember m
+            WHERE m.groupId IN :groupIds
+            GROUP BY m.groupId
+            """)
+    List<Object[]> countByGroupIdIn(
+            @org.springframework.data.repository.query.Param("groupIds") java.util.Collection<Long> groupIds);
+
     // 특정 그룹의 멤버 전체
     List<FriendGroupMember> findByGroupId(Long groupId);
 

@@ -3,11 +3,17 @@ package com.qnectdk.domain.group.controller;
 import com.qnectdk.domain.group.dto.GroupCreateRequest;
 import com.qnectdk.domain.group.dto.GroupCreateWithMembersRequest;
 import com.qnectdk.domain.group.dto.GroupMemberAddRequest;
+import com.qnectdk.domain.group.dto.GroupMemberAddedResponse;
+import com.qnectdk.domain.group.dto.GroupMemberCardResponse;
 import com.qnectdk.domain.group.dto.GroupMemberResponse;
+import com.qnectdk.domain.group.dto.GroupMembersResponse;
 import com.qnectdk.domain.group.dto.GroupResponse;
+import com.qnectdk.domain.group.dto.GroupSummaryResponse;
 import com.qnectdk.domain.group.dto.GroupUpdateRequest;
 import com.qnectdk.domain.group.dto.GroupWithMembersResponse;
 import com.qnectdk.domain.group.service.GroupService;
+import com.qnectdk.domain.profile.dto.PersonCard;
+import com.qnectdk.domain.profile.service.PersonCardService;
 import com.qnectdk.global.response.ApiResponse;
 import com.qnectdk.global.security.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
@@ -20,13 +26,16 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Tag(name = "그룹", description = """
         친구를 묶는 그룹(카테고리). 무료 5개, 초과 시 생성마다 10P 차감.
         [생성 진입 2가지] (1) 그룹 생성 화면: 친구 이름 '검색'으로 멤버 등록  (2) 친구 목록 화면: 친구 여러 명 '선택' 후 그룹 생성.
         두 경로 모두 friendIds(친구 id 배열)를 담아 POST /api/groups/with-members 한 번 호출(권장).
         멤버는 내 ACCEPTED 친구만 가능. 그룹명은 사용자별 중복 불가.
-        인원수는 멤버 목록 길이로 카운트(저장값 없음). 해시태그는 통짜 텍스트(프론트가 분리 렌더).
+        인원수는 멤버 목록 길이로 카운트(저장값 없음). 해시태그는 #없는 문자열 배열로 입출력(저장 시 내부적으로 합쳐짐).
+        멤버 목록·멤버 추가 응답은 person 카드(학교·MBTI·관심사 등 포함)와 함께 내려준다.
         """)
 @RestController
 @RequestMapping("/api/groups")
@@ -34,6 +43,7 @@ import java.util.List;
 public class GroupController {
 
     private final GroupService groupService;
+    private final PersonCardService personCardService;
 
     @Operation(summary = "그룹 생성", description = "멤버 없이 그룹만 생성한다. 5개까지 무료, 6번째부터는 생성 시 포인트 10점 차감.")
     @ApiResponses({
@@ -57,14 +67,15 @@ public class GroupController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "이미 그룹에 추가된 친구이거나, 무료 개수 초과인데 포인트가 부족함 (ALREADY_GROUP_MEMBER / INSUFFICIENT_POINT)")
     })
     @PostMapping("/with-members")
-    public ApiResponse<GroupWithMembersResponse> createWithMembers(
+    public ApiResponse<GroupMembersResponse> createWithMembers(
             @AuthenticationPrincipal CustomUserDetails user,
             @Valid @RequestBody GroupCreateWithMembersRequest dto
     ) {
-        return ApiResponse.ok(
-                groupService.createGroupWithMembers(
-                        user.getUserId(), dto.name(), dto.hashtags(), dto.friendIds())
-        );
+        Long viewerId = user.getUserId();
+        GroupWithMembersResponse created = groupService.createGroupWithMembers(
+                viewerId, dto.name(), dto.hashtags(), dto.friendIds());
+        return ApiResponse.ok(toCardResponse(
+                viewerId, created.group().groupId(), created.group().name(), created.members()));
     }
 
     @Operation(summary = "그룹 수정", description = "그룹 이름·해시태그를 수정한다. 본인 그룹만 가능.")
@@ -103,7 +114,7 @@ public class GroupController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "요청 성공")
     })
     @GetMapping
-    public ApiResponse<List<GroupResponse>> myGroups(
+    public ApiResponse<List<GroupSummaryResponse>> myGroups(
             @AuthenticationPrincipal CustomUserDetails user
     ) {
         return ApiResponse.ok(groupService.getMyGroups(user.getUserId()));
@@ -130,12 +141,15 @@ public class GroupController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "이미 그룹에 추가된 친구임 (ALREADY_GROUP_MEMBER)")
     })
     @PostMapping("/{groupId}/members")
-    public ApiResponse<GroupMemberResponse> addMember(
+    public ApiResponse<GroupMemberAddedResponse> addMember(
             @AuthenticationPrincipal CustomUserDetails user,
             @Parameter(description = "그룹 id", example = "1") @PathVariable Long groupId,
             @Valid @RequestBody GroupMemberAddRequest dto
     ) {
-        return ApiResponse.ok(groupService.addMember(user.getUserId(), groupId, dto.friendId()));
+        Long viewerId = user.getUserId();
+        GroupMemberResponse added = groupService.addMember(viewerId, groupId, dto.friendId());
+        PersonCard person = personCardService.getCard(viewerId, added.friendId());
+        return ApiResponse.ok(new GroupMemberAddedResponse(added.memberId(), added.groupId(), person));
     }
 
     @Operation(summary = "그룹 멤버 목록 조회", description = "지정한 그룹에 속한 멤버 목록을 조회합니다.")
@@ -145,11 +159,29 @@ public class GroupController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "본인 그룹이 아님 (NOT_GROUP_OWNER)")
     })
     @GetMapping("/{groupId}/members")
-    public ApiResponse<List<GroupMemberResponse>> members(
+    public ApiResponse<GroupMembersResponse> members(
             @AuthenticationPrincipal CustomUserDetails user,
             @Parameter(description = "그룹 id", example = "1") @PathVariable Long groupId
     ) {
-        return ApiResponse.ok(groupService.getMembers(user.getUserId(), groupId));
+        Long viewerId = user.getUserId();
+        GroupResponse group = groupService.getGroup(viewerId, groupId);
+        List<GroupMemberResponse> members = groupService.getMembers(viewerId, groupId);
+        return ApiResponse.ok(toCardResponse(viewerId, group.groupId(), group.name(), members));
+    }
+
+    /** 그룹원 raw 목록(friendId)을 person 카드로 보강해 최종 응답 형태로 조립한다. */
+    private GroupMembersResponse toCardResponse(
+            Long viewerId, Long groupId, String name, List<GroupMemberResponse> members) {
+        if (members.isEmpty()) {
+            return new GroupMembersResponse(groupId, name, List.of());
+        }
+        List<Long> friendIds = members.stream().map(GroupMemberResponse::friendId).toList();
+        Map<Long, PersonCard> cardByUserId = personCardService.getCards(viewerId, friendIds).stream()
+                .collect(Collectors.toMap(PersonCard::userId, c -> c));
+        List<GroupMemberCardResponse> memberCards = members.stream()
+                .map(m -> new GroupMemberCardResponse(m.memberId(), cardByUserId.get(m.friendId())))
+                .toList();
+        return new GroupMembersResponse(groupId, name, memberCards);
     }
 
     @Operation(summary = "그룹에서 멤버 제거", description = "그룹에서 특정 멤버를 제거한다.")

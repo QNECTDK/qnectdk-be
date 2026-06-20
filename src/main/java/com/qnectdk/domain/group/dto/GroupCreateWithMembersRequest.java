@@ -12,9 +12,8 @@ public record GroupCreateWithMembersRequest(
         @Size(max = 30, message = "그룹명은 30자 이내여야 합니다.")
         String name,
 
-        @Schema(description = "해시태그 (통짜 텍스트, 최대 100자)", example = "#동아리 #MT")
-        @Size(max = 100, message = "해시태그는 100자 이내여야 합니다.")
-        String hashtags,
+        @Schema(description = "해시태그 목록 (# 없이)", example = "[\"동아리\", \"MT\"]")
+        List<String> hashtags,
 
         // 그룹 생성과 동시에 추가할 친구 id 목록 (비어있어도 됨 = 멤버 없이 그룹만 생성)
         @Schema(description = "그룹 생성과 동시에 추가할 친구 userId 목록 (비어있으면 멤버 없이 생성)", example = "[2, 3]")
