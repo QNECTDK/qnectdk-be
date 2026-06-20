@@ -47,11 +47,6 @@ app:
     secret: ${JWT_SECRET}
     access-token-validity-ms: ${JWT_ACCESS_VALIDITY_MS:3600000}        # 1시간
     refresh-token-validity-ms: ${JWT_REFRESH_VALIDITY_MS:1209600000}   # 14일
-  storage:
-    # 프로필 이미지 저장소. S3 설정 전까지 로컬 파일 저장으로 대체.
-    local:
-      base-path: ${STORAGE_LOCAL_PATH:./uploads}
-      base-url: ${STORAGE_BASE_URL:http://localhost:8080/files}
   share:
     # QR/공유 URL 생성용 base. 예: https://{base}/{publicCode}
     base-url: ${SHARE_BASE_URL:https://qnect.app}

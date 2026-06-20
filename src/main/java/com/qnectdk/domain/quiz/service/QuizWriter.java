@@ -46,6 +46,12 @@ public class QuizWriter {
         return quiz;
     }
 
+    /** 활성 퀴즈의 문항·보기 제거 후 비활성화. 호출부 트랜잭션에 합류(REQUIRED). 퀴즈 행은 보존. */
+    public void clearContentAndDeactivate(Quiz quiz) {
+        deleteContent(quiz.getId());   // 기존 private 벌크 삭제 패턴(보기→문항) 재사용
+        quiz.deactivate();             // active=false 전이(dirty checking)
+    }
+
     private void deactivateActive(Long ownerId) {
         quizRepository.findByOwnerIdAndActiveTrue(ownerId).forEach(Quiz::deactivate);
     }

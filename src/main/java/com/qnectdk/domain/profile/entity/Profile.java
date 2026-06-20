@@ -46,7 +46,7 @@ public class Profile extends BaseTimeEntity {
     @Column(name = "favorite_food", length = 30)
     private String favoriteFood;
 
-    @Column(name = "image_url")
+    @Column(name = "image_url", length = 512)
     private String imageUrl;
 
     @Builder

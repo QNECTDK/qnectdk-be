@@ -13,4 +13,7 @@ public interface QuizRepository extends JpaRepository<Quiz, Long> {
 
     // 새 퀴즈 생성 시 기존 active 들을 모두 비활성화하기 위한 조회.
     List<Quiz> findByOwnerIdAndActiveTrue(Long ownerId);
+
+    // QUIZ_FIRST_SETUP 생애 1회 적립 판정용. active 여부와 무관하게 owner 의 퀴즈 레코드 존재 여부를 반환한다.
+    boolean existsByOwnerId(Long ownerId);
 }

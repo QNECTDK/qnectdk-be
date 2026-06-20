@@ -254,25 +254,46 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ApiResponseAiQuizDraftResponse"
-  /api/profiles/me/image:
-    post:
+  /api/profiles/characters:
+    get:
       tags:
       - 프로필
-      summary: 프로필 이미지 업로드
-      description: 프로필 이미지를 업로드한다(multipart). 프로필이 먼저 존재해야 한다.
-      operationId: uploadImage
+      summary: 캐릭터 카탈로그 조회
+      description: 프로필 이미지로 선택 가능한 캐릭터 17종을 반환한다.
+      operationId: getCharacters
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiResponseListCharacterResponse"
+  /api/profiles/me/image:
+    put:
+      tags:
+      - 프로필
+      summary: 프로필 이미지(캐릭터) 설정
+      description: 카탈로그의 캐릭터 식별자로 프로필 이미지를 설정한다. 무효 식별자는 400, 프로필 없으면 404.
+      operationId: setImage
       requestBody:
         content:
-          multipart/form-data:
+          application/json:
             schema:
-              type: object
-              properties:
-                image:
-                  type: string
-                  format: binary
-              required:
-              - image
+              $ref: "#/components/schemas/ProfileImageRequest"
+        required: true
       responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiResponseImageResponse"
+        "400":
+          description: 무효 캐릭터 식별자(INVALID_INPUT)
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiResponseImageResponse"
         "404":
           description: 프로필 없음(PROFILE_NOT_FOUND)
           content:
@@ -1450,7 +1471,42 @@ components:
       properties:
         imageUrl:
           type: string
-          description: 업로드된 프로필 이미지 URL
+          description: 설정된 프로필 이미지 URL(선택한 캐릭터의 이미지 URL)
+    ProfileImageRequest:
+      type: object
+      properties:
+        characterId:
+          type: string
+          description: 선택한 캐릭터 식별자
+          example: character07
+      required:
+      - characterId
+    CharacterResponse:
+      type: object
+      properties:
+        characterId:
+          type: string
+          description: 캐릭터 식별자
+          example: character07
+        imageUrl:
+          type: string
+          description: 캐릭터 이미지 URL
+          example: https://cdn.qnect.example.com/characters/07.png
+    ApiResponseListCharacterResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: 요청 성공 여부
+          example: true
+        data:
+          type: array
+          description: 성공 시 응답 데이터 (실패 시 null)
+          items:
+            $ref: "#/components/schemas/CharacterResponse"
+        error:
+          $ref: "#/components/schemas/ErrorDetail"
+          description: 실패 시 에러 정보 (성공 시 null)
     ApiResponseAttendanceResult:
       type: object
       properties:
