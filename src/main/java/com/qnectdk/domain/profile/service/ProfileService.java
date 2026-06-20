@@ -23,6 +23,7 @@ import com.qnectdk.domain.interest.service.InterestService;
 import com.qnectdk.domain.profile.dto.PersonInfo;
 import java.util.Map;
 import java.util.stream.Collectors;
+import com.qnectdk.global.util.ZodiacCharacterUtil;
 
 @Service
 @Transactional(readOnly = true)
@@ -139,7 +140,9 @@ public class ProfileService {
                     return new PersonInfo(
                             uid,
                             user.name(),
-                            profile != null ? profile.getCharacterId() : null,
+                            ZodiacCharacterUtil.resolve(
+                                    profile != null ? profile.getCharacterId() : null,
+                                    user.birthDate()),
                             profile != null ? profile.getSchool() : null,
                             profile != null && profile.getGender() != null ? profile.getGender().name() : null,
                             user.birthDate().getYear(),
