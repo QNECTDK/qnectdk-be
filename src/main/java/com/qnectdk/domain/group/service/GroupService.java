@@ -103,7 +103,20 @@ public class GroupService {
     }
 
     public List<GroupSummaryResponse> getMyGroups(Long userId) {
-        List<FriendGroup> groups = groupRepository.findByUserId(userId);
+      return toSummaries(groupRepository.findByUserId(userId));
+    }
+
+    /** 본인 소유 그룹 단건 조회 (이름 등 기본 정보용). */
+    public GroupResponse getGroup(Long userId, Long groupId) {
+      return GroupResponse.from(getOwnedGroup(userId, groupId));
+    }
+
+    public List<GroupSummaryResponse> searchByName(Long userId, String keyword) {
+      return toSummaries(groupRepository.findByUserIdAndNameContainingIgnoreCase(userId, keyword));
+    }
+
+    /** 그룹 목록을 멤버 수까지 채운 요약 응답으로 변환한다(멤버 수는 한 번의 집계 쿼리로). */
+    private List<GroupSummaryResponse> toSummaries(List<FriendGroup> groups) {
         if (groups.isEmpty()) {
             return List.of();
         }
@@ -113,16 +126,6 @@ public class GroupService {
         return groups.stream()
                 .map(g -> GroupSummaryResponse.from(g, countByGroupId.getOrDefault(g.getId(), 0L).intValue()))
                 .toList();
-    }
-
-    /** 본인 소유 그룹 단건 조회 (이름 등 기본 정보용). */
-    public GroupResponse getGroup(Long userId, Long groupId) {
-        return GroupResponse.from(getOwnedGroup(userId, groupId));
-    }
-
-    public List<GroupResponse> searchByName(Long userId, String keyword) {
-        return groupRepository.findByUserIdAndNameContainingIgnoreCase(userId, keyword)
-                .stream().map(GroupResponse::from).toList();
     }
 
     @Transactional

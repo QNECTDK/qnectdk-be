@@ -125,7 +125,7 @@ public class GroupController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "요청 성공")
     })
     @GetMapping("/search")
-    public ApiResponse<List<GroupResponse>> search(
+    public ApiResponse<List<GroupSummaryResponse>> search(
             @AuthenticationPrincipal CustomUserDetails user,
             @Parameter(description = "그룹명 검색 키워드", example = "동기") @RequestParam String keyword
     ) {
