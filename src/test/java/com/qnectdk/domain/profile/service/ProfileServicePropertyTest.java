@@ -11,6 +11,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.qnectdk.domain.interest.service.InterestService;
 import com.qnectdk.domain.point.entity.PointPolicy;
 import com.qnectdk.domain.point.entity.PointReason;
 import com.qnectdk.domain.point.service.PointService;
@@ -50,7 +51,8 @@ class ProfileServicePropertyTest {
     private ProfileService newService(ProfileRepository profileRepository,
                                       UserQueryService userQueryService,
                                       PointService pointService) {
-        return new ProfileService(profileRepository, userQueryService, pointService, SHARE_BASE_URL);
+        return new ProfileService(
+                profileRepository, userQueryService, pointService, SHARE_BASE_URL, mock(InterestService.class));
     }
 
     private ProfileRequest sampleRequest() {
@@ -92,8 +94,8 @@ class ProfileServicePropertyTest {
     }
 
     // Feature: point-notification-integration, Property 8: 캐릭터 카탈로그 고정성
-    // 임의의 카탈로그 조회 호출에 대해 항상 정확히 17건, characterId 집합은 항상 동일,
-    // 각 항목의 characterId/imageUrl은 비어있지 않다.
+    // 임의의 카탈로그 조회 호출에 대해 항상 정확히 19건, characterId 집합은 항상 동일,
+        // 각 항목의 characterId/imageUrl은 비어있지 않다.
     // Validates: Requirements 5.2, 5.3, 5.4
     @Property(tries = 100)
     void characterCatalog_isFixed_acrossRepeatedCalls(@ForAll @IntRange(min = 1, max = 5) int repeat) {
@@ -109,11 +111,8 @@ class ProfileServicePropertyTest {
         for (int i = 0; i < repeat; i++) {
             List<CharacterResponse> catalog = service.getCharacters();
 
-            assertThat(catalog).hasSize(17);
-            assertThat(catalog).allSatisfy(c -> {
-                assertThat(c.characterId()).isNotBlank();
-                assertThat(c.imageUrl()).isNotBlank();
-            });
+            assertThat(catalog).hasSize(19);
+            assertThat(catalog).allSatisfy(c -> assertThat(c.characterId()).isNotBlank());
             Set<String> ids = catalog.stream()
                     .map(CharacterResponse::characterId)
                     .collect(Collectors.toSet());
@@ -122,8 +121,8 @@ class ProfileServicePropertyTest {
     }
 
     // Feature: point-notification-integration, Property 9: 캐릭터 선택 설정의 유효성 분기
-    // 카탈로그에 있는 식별자면 updateImageUrl 호출 + 해당 imageUrl 반환,
-    // 없으면 BusinessException(INVALID_INPUT) + updateImageUrl 미호출.
+    // 카탈로그에 있는 식별자면 updateCharacterId 호출 + 해당 characterId 반환,
+    // 없으면 BusinessException(INVALID_INPUT) + updateCharacterId 미호출.
     // Validates: Requirements 6.2, 6.3, 6.4
     @Property(tries = 100)
     void setCharacterImage_branchesOnCatalogValidity(
@@ -138,14 +137,14 @@ class ProfileServicePropertyTest {
         Optional<CharacterImage> match = CharacterImage.findById(characterId);
 
         if (match.isPresent()) {
-            String expectedUrl = match.get().getImageUrl();
+          String expectedId = match.get().getCharacterId();
             Profile profile = mock(Profile.class);
             when(profileRepository.findByUserId(userId)).thenReturn(Optional.of(profile));
 
             ImageResponse response = service.setCharacterImage(userId, characterId);
 
-            assertThat(response.imageUrl()).isEqualTo(expectedUrl);
-            verify(profile, times(1)).updateImageUrl(expectedUrl);
+            assertThat(response.characterId()).isEqualTo(expectedId);
+            verify(profile, times(1)).updateCharacterId(expectedId);
         } else {
             assertThatThrownBy(() -> service.setCharacterImage(userId, characterId))
                     .isInstanceOf(BusinessException.class)

@@ -24,8 +24,8 @@ public class ShopItem extends BaseTimeEntity {
     @Column(nullable = false, length = 20)
     private ItemType type;
 
-    @Column(name = "image_url", nullable = false, length = 255)
-    private String imageUrl;
+    @Column(name = "character_id", length = 20)
+    private String characterId;
 
     @Column(nullable = false)
     private int price;
@@ -34,19 +34,19 @@ public class ShopItem extends BaseTimeEntity {
     private boolean isActive;
 
     @Builder
-    private ShopItem(String name, ItemType type, String imageUrl, int price, boolean isActive) {
+    private ShopItem(String name, ItemType type, String characterId, int price, boolean isActive) {
         this.name = name;
         this.type = type;
-        this.imageUrl = imageUrl;
+        this.characterId = characterId;
         this.price = price;
         this.isActive = isActive;
     }
 
-    public static ShopItem create(String name, ItemType type, String imageUrl, int price) {
+    public static ShopItem create(String name, ItemType type, String characterId, int price) {
         return ShopItem.builder()
                 .name(name)
                 .type(type)
-                .imageUrl(imageUrl)
+                .characterId(characterId)
                 .price(price)
                 .isActive(true)
                 .build();

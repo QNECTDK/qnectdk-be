@@ -1,13 +1,16 @@
 package com.qnectdk.domain.friend.service;
 
+import com.qnectdk.domain.friend.dto.FriendCardResponse;
 import com.qnectdk.domain.friend.dto.FriendResponse;
 import com.qnectdk.domain.friend.dto.FriendSummary;
+import com.qnectdk.domain.friend.dto.ReceivedFriendRequestResponse;
 import com.qnectdk.domain.friend.entity.Friendship;
 import com.qnectdk.domain.friend.entity.FriendshipStatus;
 import com.qnectdk.domain.friend.repository.FriendshipRepository;
 import com.qnectdk.domain.point.service.PointService;
+import com.qnectdk.domain.profile.dto.PersonCard;
+import com.qnectdk.domain.profile.service.PersonCardService;
 import com.qnectdk.domain.reminder.service.ReminderService;
-import com.qnectdk.domain.user.service.UserQueryService;
 import com.qnectdk.global.exception.BusinessException;
 import com.qnectdk.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +19,11 @@ import org.springframework.transaction.annotation.Transactional;
 import com.qnectdk.domain.notification.entity.NotificationType;
 import com.qnectdk.domain.notification.service.NotificationService;
 
+import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -24,7 +31,7 @@ import java.util.List;
 public class FriendService {
 
     private final FriendshipRepository friendshipRepository;
-    private final UserQueryService userQueryService;
+    private final PersonCardService personCardService;
     private final PointService pointService;
     private final ReminderService reminderService;
     private final NotificationService notificationService;
@@ -103,12 +110,48 @@ public class FriendService {
                 .toList();
     }
 
-    public List<FriendResponse> getReceivedRequests(Long userId) {
-        return friendshipRepository
-                .findByAddresseeIdAndStatus(userId, FriendshipStatus.PENDING)
-                .stream()
-                .map(FriendResponse::from)
+    /** 받은 친구 요청 목록을 요청자(requester)의 person 카드와 함께 반환. */
+    public List<ReceivedFriendRequestResponse> getReceivedRequests(Long userId) {
+        List<Friendship> requests = friendshipRepository
+                .findByAddresseeIdAndStatus(userId, FriendshipStatus.PENDING);
+        if (requests.isEmpty()) {
+            return List.of();
+        }
+        List<Long> requesterIds = requests.stream().map(Friendship::getRequesterId).toList();
+        Map<Long, PersonCard> cardByUserId = personCardService.getCards(userId, requesterIds).stream()
+                .collect(Collectors.toMap(PersonCard::userId, c -> c));
+        return requests.stream()
+                .map(f -> new ReceivedFriendRequestResponse(
+                        f.getId(), f.getStatus(), f.getCreatedAt(), cardByUserId.get(f.getRequesterId())))
                 .toList();
+    }
+
+    /** 내 친구 목록을 person 카드와 함께 반환. sort: "name"=이름 가나다순, 그 외(기본)=savedAt 최신순. */
+    public List<FriendCardResponse> getFriendCards(Long userId, String sort) {
+        List<Friendship> friendships = friendshipRepository
+                .findAcceptedFriendsOf(userId, FriendshipStatus.ACCEPTED);
+        if (friendships.isEmpty()) {
+            return List.of();
+        }
+
+        List<Long> friendIds = friendships.stream()
+                .map(f -> counterpartOf(f, userId))
+                .toList();
+        Map<Long, PersonCard> cardByUserId = personCardService.getCards(userId, friendIds).stream()
+                .collect(Collectors.toMap(PersonCard::userId, c -> c));
+
+        List<FriendCardResponse> cards = friendships.stream()
+                .map(f -> {
+                    LocalDateTime savedAt = f.getAcceptedAt() != null ? f.getAcceptedAt() : f.getCreatedAt();
+                    return new FriendCardResponse(
+                            f.getId(), savedAt, cardByUserId.get(counterpartOf(f, userId)));
+                })
+                .toList();
+
+        Comparator<FriendCardResponse> comparator = "name".equalsIgnoreCase(sort)
+                ? Comparator.comparing(c -> c.person() == null ? "" : c.person().name())
+                : Comparator.comparing(FriendCardResponse::savedAt).reversed();
+        return cards.stream().sorted(comparator).toList();
     }
 
     public List<Long> getFriendIds(Long userId) {
@@ -128,8 +171,8 @@ public class FriendService {
             return List.of();
         }
 
-        return userQueryService.getByIds(friendIds).stream()
-                .map(u -> new FriendSummary(u.userId(), u.name()))
+        return personCardService.getCards(userId, friendIds).stream()
+                .map(c -> new FriendSummary(c.userId(), c.name(), c.characterId()))
                 .toList();
     }
 
@@ -142,5 +185,9 @@ public class FriendService {
         if (!f.getAddresseeId().equals(currentUserId)) {
             throw new BusinessException(ErrorCode.NOT_FRIENDSHIP_ADDRESSEE);
         }
+    }
+
+    private Long counterpartOf(Friendship f, Long userId) {
+        return f.getRequesterId().equals(userId) ? f.getAddresseeId() : f.getRequesterId();
     }
 }

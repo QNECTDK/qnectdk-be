@@ -12,6 +12,7 @@ import com.qnectdk.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.Collection;
 
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -68,6 +69,24 @@ public class InterestService {
                 .toList());
 
         return interests.stream().map(InterestResponse::from).toList();
+    }
+
+    public Map<Long, List<String>> getNamesByUserIds(Collection<Long> userIds) {
+        if (userIds == null || userIds.isEmpty()) {
+            return Map.of();
+        }
+        List<UserInterest> links = userInterestRepository.findByUserIdIn(userIds);
+        if (links.isEmpty()) {
+            return Map.of();
+        }
+        List<Long> interestIds = links.stream()
+                .map(UserInterest::getInterestId).distinct().toList();
+        Map<Long, String> idToName = interestRepository.findAllById(interestIds).stream()
+                .collect(Collectors.toMap(Interest::getId, Interest::getName));
+        return links.stream().collect(Collectors.groupingBy(
+                UserInterest::getUserId,
+                Collectors.mapping(link -> idToName.get(link.getInterestId()), Collectors.toList())
+        ));
     }
 
     private List<Interest> loadAndValidate(List<Long> interestIds) {

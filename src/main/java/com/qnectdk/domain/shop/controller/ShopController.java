@@ -20,7 +20,7 @@ import java.util.List;
         [흐름] 목록(GET /items) → 구매(POST /items/{id}/purchase, 포인트 차감) → 보유(GET /my-items) → 장착/해제.
         캐릭터: 생년월일 띠 캐릭터가 기본 프사(무료). 17종 전부 200P 구매 가능.
         장착은 type별 하나만 — 다른 캐릭터를 장착하면 기존 것은 자동 해제(= 캐릭터 교체).
-        해제하면 장착이 풀리고 기본 띠 캐릭터로 복귀.imageUrl은 캐릭터 식별용 경로(/characters/{key}.png)이며,실제 이미지는 프론트에서 관리한다.
+        해제하면 장착이 풀리고 기본 띠 캐릭터로 복귀. characterId는 캐릭터 식별용 코드이며, 실제 이미지는 프론트에서 관리한다.
         """)
 @RestController // 캐릭터를 아이템으로 할께용..
 @RequestMapping("/api/shop")

@@ -8,6 +8,7 @@ import java.util.List;
 public interface UserInterestRepository extends JpaRepository<UserInterest, Long> {
 
     List<UserInterest> findByUserId(Long userId);
+    List<UserInterest> findByUserIdIn(java.util.Collection<Long> userIds);
 
     void deleteByUserId(Long userId);
 }

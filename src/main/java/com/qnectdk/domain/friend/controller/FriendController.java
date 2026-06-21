@@ -1,10 +1,12 @@
 package com.qnectdk.domain.friend.controller;
 
+import com.qnectdk.domain.friend.dto.FriendCardResponse;
 import com.qnectdk.domain.friend.dto.FriendMemoRequest;
 import com.qnectdk.domain.friend.dto.FriendMemoResponse;
 import com.qnectdk.domain.friend.dto.FriendRequestDto;
 import com.qnectdk.domain.friend.dto.FriendResponse;
 import com.qnectdk.domain.friend.dto.FriendSummary;
+import com.qnectdk.domain.friend.dto.ReceivedFriendRequestResponse;
 import com.qnectdk.domain.friend.service.FriendMemoService;
 import com.qnectdk.domain.friend.service.FriendService;
 import com.qnectdk.global.response.ApiResponse;
@@ -24,7 +26,7 @@ import java.util.List;
         친구 관계 관리.
         [흐름] 친구요청(POST /api/friends) → 받은요청 조회(GET /requests/received) → 수락(PATCH /{id}/accept) 또는 거절.
         수락 시 자동: 요청자에게 알림 발송 + 양쪽 30일 리마인드 예약 + 친구수 마일스톤 포인트 체크.
-        친구 프로필 상세(학교·MBTI 등)는 이 API에 없음 → A의 프로필 API와 조합. 자동완성(/summaries)은 id+이름만 제공.
+        친구 목록·받은 요청은 person 카드(학교·MBTI·관심사 등 포함)와 함께 내려준다. 자동완성(/summaries)은 id+이름+characterId만 제공.
         """)
 @RestController
 @RequestMapping("/api/friends")
@@ -78,18 +80,20 @@ public class FriendController {
         return ApiResponse.ok(friendService.reject(friendshipId, user.getUserId()));
     }
 
-    @Operation(summary = "내 친구 목록", description = "수락된(ACCEPTED) 친구 전체를 반환한다.")
+    @Operation(summary = "내 친구 목록", description = "수락된(ACCEPTED) 친구 전체를 person 카드와 함께 반환한다.")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "요청 성공")
     })
     @GetMapping
-    public ApiResponse<List<FriendResponse>> getFriends(
-            @AuthenticationPrincipal CustomUserDetails user
+    public ApiResponse<List<FriendCardResponse>> getFriends(
+            @AuthenticationPrincipal CustomUserDetails user,
+            @Parameter(description = "정렬 기준: recent(친구된 시각 최신순, 기본값) 또는 name(이름 가나다순)", example = "recent")
+            @RequestParam(defaultValue = "recent") String sort
     ) {
-        return ApiResponse.ok(friendService.getFriends(user.getUserId()));
+        return ApiResponse.ok(friendService.getFriendCards(user.getUserId(), sort));
     }
 
-    @Operation(summary = "자동완성용 친구 목록", description = "그룹 멤버 추가 시 사용. 친구의 id+이름만 반환.")
+    @Operation(summary = "자동완성용 친구 목록", description = "그룹 멤버 추가 시 사용. 친구의 id+이름+characterId만 반환.")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "요청 성공")
     })
@@ -100,12 +104,12 @@ public class FriendController {
         return ApiResponse.ok(friendService.getFriendSummaries(user.getUserId()));
     }
 
-    @Operation(summary = "받은 친구 요청 목록", description = "내가 받은 대기중(PENDING) 친구 요청들을 반환한다.")
+    @Operation(summary = "받은 친구 요청 목록", description = "내가 받은 대기중(PENDING) 친구 요청들을 요청자의 person 카드와 함께 반환한다.")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "요청 성공")
     })
     @GetMapping("/requests/received")
-    public ApiResponse<List<FriendResponse>> getReceivedRequests(
+    public ApiResponse<List<ReceivedFriendRequestResponse>> getReceivedRequests(
             @AuthenticationPrincipal CustomUserDetails user
     ) {
         return ApiResponse.ok(friendService.getReceivedRequests(user.getUserId()));
