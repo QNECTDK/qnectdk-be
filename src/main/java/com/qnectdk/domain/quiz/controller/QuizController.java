@@ -128,7 +128,9 @@ public class QuizController {
     }
 
     @Operation(summary = "퀴즈 응시·채점",
-            description = "친구 퀴즈에 답을 제출하고 채점 결과를 받는다. 프로필 완성 필요. 첫 풀기면 포인트가 적립된다.")
+        description = "친구(ownerId) 퀴즈에 답을 제출하고 채점 결과를 받는다. 응시자 프로필이 완성돼야 풀 수 있다."
+            + " 해당 친구의 퀴즈를 처음 푼 경우에만 포인트 +10P(QUIZ_FIRST_SOLVE)가 적립된다(친구 1명당 1회, 재응시·재적립 없음)."
+            + " 채점 결과는 응시 즉시 반환되며 포인트 적립 성공 여부와 무관하게 201 로 응답한다.")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "응시·채점 성공"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "본인 퀴즈를 응시하려 하거나(QUIZ_FORBIDDEN) 프로필 미완성으로 응시 불가(QUIZ_NOT_SOLVABLE)"),
