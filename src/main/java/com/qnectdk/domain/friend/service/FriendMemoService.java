@@ -3,8 +3,6 @@ package com.qnectdk.domain.friend.service;
 import com.qnectdk.domain.friend.dto.FriendMemoResponse;
 import com.qnectdk.domain.friend.entity.FriendMemo;
 import com.qnectdk.domain.friend.repository.FriendMemoRepository;
-import com.qnectdk.global.exception.BusinessException;
-import com.qnectdk.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,10 +23,11 @@ public class FriendMemoService {
         return FriendMemoResponse.from(memo);
     }
 
+    /** 메모 조회. 아직 메모가 없으면 에러가 아니라 빈 메모(content=null)를 200으로 반환한다. */
     public FriendMemoResponse get(Long ownerId, Long friendId) {
-        FriendMemo memo = friendMemoRepository
+      return friendMemoRepository
                 .findByOwnerIdAndFriendId(ownerId, friendId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.MEMO_NOT_FOUND));
-        return FriendMemoResponse.from(memo);
+            .map(FriendMemoResponse::from)
+            .orElseGet(() -> FriendMemoResponse.empty(ownerId, friendId));
     }
 }

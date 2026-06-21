@@ -12,6 +12,9 @@ import com.qnectdk.domain.daily.entity.DailyQuizAnswer;
 import com.qnectdk.domain.daily.port.FriendQueryPort;
 import com.qnectdk.domain.daily.repository.DailyQuizAnswerRepository;
 import com.qnectdk.domain.daily.repository.DailyQuizRepository;
+import com.qnectdk.domain.point.entity.PointPolicy;
+import com.qnectdk.domain.point.entity.PointReason;
+import com.qnectdk.domain.point.service.PointService;
 import com.qnectdk.domain.profile.dto.PersonCard;
 import com.qnectdk.domain.profile.service.PersonCardService;
 import com.qnectdk.global.exception.BusinessException;
@@ -43,6 +46,7 @@ public class DailyQuizService {
     private final DailyQuizAnswerRepository answerRepository;
     private final FriendQueryPort friendQueryPort;
     private final PersonCardService personCardService;
+    private final PointService pointService;
 
     public DailyTodayResponse getToday(Long userId) {
         DailyQuiz quiz = getTodayQuizOrThrow();
@@ -58,6 +62,8 @@ public class DailyQuizService {
             throw new BusinessException(ErrorCode.DAILY_ALREADY_ANSWERED);
         }
         answerRepository.save(DailyQuizAnswer.create(quiz.getId(), userId, request.selected()));
+        // 데일리 답변 보상 +5P (refId=오늘 데일리 id → 하루 1회만 적립, 멱등)
+        pointService.earn(userId, PointPolicy.DAILY_ANSWER, PointReason.DAILY_ANSWER, quiz.getId());
         return buildStats(quiz, userId);
     }
 

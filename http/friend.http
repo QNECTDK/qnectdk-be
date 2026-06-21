@@ -1,0 +1,118 @@
+# 친구 API 수동 테스트 (REST Client) — 방향성 "명함첩" 모델
+# 핵심: QR/URL로 상대 프로필 접속 → '수락'(POST /api/friends)하면 (나↔상대) 상호 등록 + 첫 만남 퀴즈 알림.
+#       '거절'은 클라이언트 동작(서버 호출 없음). 삭제(DELETE /api/friends/{friendId})는 내 쪽만 끊김(상대 무영향).
+# 같은 파일에서 위에서부터 순서대로 실행하세요(요청 간 응답 참조).
+
+@baseUrl = http://localhost:8080
+@aLoginId = frienddemo_a
+@bLoginId = frienddemo_b
+@password = test1234
+
+### (준비) A 회원가입 — 이미 있으면 409(무시)
+POST {{baseUrl}}/api/auth/signup
+Content-Type: application/json
+
+{ "loginId": "{{aLoginId}}", "phone": "01055550001", "password": "{{password}}", "name": "친구데모A", "birthDate": "2002-05-05" }
+
+### (준비) B 회원가입 — 이미 있으면 409(무시)
+POST {{baseUrl}}/api/auth/signup
+Content-Type: application/json
+
+{ "loginId": "{{bLoginId}}", "phone": "01055550002", "password": "{{password}}", "name": "친구데모B", "birthDate": "2001-06-06" }
+
+### A 로그인
+# @name loginA
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{ "loginId": "{{aLoginId}}", "password": "{{password}}" }
+
+### A 프로필 작성 — A 의 userId 확보
+# @name profileA
+PUT {{baseUrl}}/api/profiles/me
+Authorization: Bearer {{loginA.response.body.$.data.accessToken}}
+Content-Type: application/json
+
+{ "school": "국민대학교", "gender": "MALE", "mbti": "ENFP", "drinkLevel": "소주 1잔", "favoriteFood": "치킨" }
+
+### B 로그인
+# @name loginB
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{ "loginId": "{{bLoginId}}", "password": "{{password}}" }
+
+### B 프로필 작성 — B 의 userId 확보
+# @name profileB
+PUT {{baseUrl}}/api/profiles/me
+Authorization: Bearer {{loginB.response.body.$.data.accessToken}}
+Content-Type: application/json
+
+{ "school": "연세대학교", "gender": "FEMALE", "mbti": "INFJ", "drinkLevel": "맥주 1잔", "favoriteFood": "초밥" }
+
+### B 가 A 의 QR/프로필을 보고 '수락' → 상호 친구 등록 + 첫 만남 퀴즈 알림
+# (B 시점: friendId = A 의 userId)
+POST {{baseUrl}}/api/friends
+Authorization: Bearer {{loginB.response.body.$.data.accessToken}}
+Content-Type: application/json
+
+{ "friendId": {{profileA.response.body.$.data.userId}} }
+
+### B 친구 목록 — A 가 보여야 함
+GET {{baseUrl}}/api/friends
+Authorization: Bearer {{loginB.response.body.$.data.accessToken}}
+
+### A 친구 목록 — 상호 등록이므로 B 도 보여야 함
+GET {{baseUrl}}/api/friends
+Authorization: Bearer {{loginA.response.body.$.data.accessToken}}
+
+### (검증) 본인을 친구로 추가 → 400 INVALID_INPUT
+POST {{baseUrl}}/api/friends
+Authorization: Bearer {{loginA.response.body.$.data.accessToken}}
+Content-Type: application/json
+
+{ "friendId": {{profileA.response.body.$.data.userId}} }
+
+### (멱등) B 가 A 를 다시 수락 → 200 (중복 행 안 생김)
+POST {{baseUrl}}/api/friends
+Authorization: Bearer {{loginB.response.body.$.data.accessToken}}
+Content-Type: application/json
+
+{ "friendId": {{profileA.response.body.$.data.userId}} }
+
+### 자동완성용 친구 목록(그룹 멤버 추가용)
+GET {{baseUrl}}/api/friends/summaries
+Authorization: Bearer {{loginB.response.body.$.data.accessToken}}
+
+### 친구 메모 작성/수정 (B → A 메모)
+PUT {{baseUrl}}/api/friends/memos
+Authorization: Bearer {{loginB.response.body.$.data.accessToken}}
+Content-Type: application/json
+
+{ "friendId": {{profileA.response.body.$.data.userId}}, "content": "동아리에서 만난 친구" }
+
+### 친구 메모 조회
+GET {{baseUrl}}/api/friends/memos/{{profileA.response.body.$.data.userId}}
+Authorization: Bearer {{loginB.response.body.$.data.accessToken}}
+
+### B 가 A 를 삭제 → 내(B) 쪽만 끊김
+DELETE {{baseUrl}}/api/friends/{{profileA.response.body.$.data.userId}}
+Authorization: Bearer {{loginB.response.body.$.data.accessToken}}
+
+### B 친구 목록 — A 가 사라져야 함
+GET {{baseUrl}}/api/friends
+Authorization: Bearer {{loginB.response.body.$.data.accessToken}}
+
+### A 친구 목록 — A 쪽은 그대로라 B 가 여전히 보여야 함(상대 무영향 확인)
+GET {{baseUrl}}/api/friends
+Authorization: Bearer {{loginA.response.body.$.data.accessToken}}
+
+### (검증) 내 목록에 없는 친구 삭제 → 404 FRIENDSHIP_NOT_FOUND
+DELETE {{baseUrl}}/api/friends/{{profileA.response.body.$.data.userId}}
+Authorization: Bearer {{loginB.response.body.$.data.accessToken}}
+
+### (인증) 토큰 없이 친구 추가 → 401
+POST {{baseUrl}}/api/friends
+Content-Type: application/json
+
+{ "friendId": 1 }

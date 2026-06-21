@@ -1,43 +1,19 @@
 package com.qnectdk.domain.friend.repository;
 
 import com.qnectdk.domain.friend.entity.Friendship;
-import com.qnectdk.domain.friend.entity.FriendshipStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface FriendshipRepository extends JpaRepository<Friendship, Long> {
 
-    boolean existsByRequesterIdAndAddresseeId(Long requesterId, Long addresseeId);
+  /** ownerId 가 friendId 를 이미 친구로 저장했는지. */
+  boolean existsByOwnerIdAndFriendId(Long ownerId, Long friendId);
 
-    List<Friendship> findByAddresseeIdAndStatus(Long addresseeId, FriendshipStatus status);
+    /** ownerId 의 친구 목록(내가 저장한 친구들). */
+    List<Friendship> findByOwnerId(Long ownerId);
 
-    List<Friendship> findByRequesterIdAndStatus(Long requesterId, FriendshipStatus status);
-
-    // 내 친구 목록: 내가 보냈든 받았든 ACCEPTED인 관계 전부
-    @Query("""
-            select f from Friendship f
-            where f.status = :status
-              and (f.requesterId = :userId or f.addresseeId = :userId)
-            """)
-    List<Friendship> findAcceptedFriendsOf(
-            @Param("userId") Long userId,
-            @Param("status") FriendshipStatus status
-    );
-
-    // 두 사람이 ACCEPTED 친구인지 (방향 무관) — group 멤버 검증용
-    @Query("""
-            select count(f) > 0 from Friendship f
-            where f.status = :status
-              and ((f.requesterId = :a and f.addresseeId = :b)
-                or (f.requesterId = :b and f.addresseeId = :a))
-            """)
-
-    boolean existsAcceptedBetween(
-            @Param("a") Long a,
-            @Param("b") Long b,
-            @Param("status") FriendshipStatus status
-    );
-}
+    /** 특정 방향 한 행 조회(삭제·단건 처리용). */
+    Optional<Friendship> findByOwnerIdAndFriendId(Long ownerId, Long friendId);
+  }
