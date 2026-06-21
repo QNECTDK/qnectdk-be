@@ -1,16 +1,13 @@
 {
   "enabled": true,
-  "name": "Convention Quick Check",
-  "description": "자바 파일 저장 시 A 컨벤션(ApiResponse 래핑, setter 금지, 단일 advice, 도메인 경계) 위반 여부를 가볍게 점검한다.",
-  "version": "1",
+  "name": "Convention Quick Check (Manual)",
+  "description": "수동 실행 시 A 컨벤션(ApiResponse 래핑, setter 금지, 단일 advice, 도메인 경계) 위반 여부를 점검한다. 파일 저장마다 자동 실행하지 않는다.",
+  "version": "2",
   "when": {
-    "type": "fileEdited",
-    "patterns": [
-      "*.java"
-    ]
+    "type": "userTriggered"
   },
   "then": {
     "type": "askAgent",
-    "prompt": "방금 저장된 자바 파일을 컨벤션 기준으로 가볍게 점검하고, 위반이 있을 때만 경고하세요(수정은 강요하지 말 것). 점검 항목: (1) @RestControllerAdvice는 GlobalExceptionHandler 하나만 — 새 advice 금지. (2) @Entity에 @Setter 금지 — 상태 변경은 도메인 메서드로. (3) *Controller는 모든 응답을 ApiResponse<T>로 감쌌는지. (4) 도메인 경계: 타 도메인 entity import 금지(Long ID/서비스 호출로). 위반이 없으면 아무것도 출력하지 마세요."
+    "prompt": "최근 수정한 자바 파일들을 컨벤션 기준으로 점검하고, 위반이 있을 때만 경고하세요. 항목: (1) @RestControllerAdvice는 GlobalExceptionHandler 하나만. (2) @Entity에 @Setter 금지(상태 변경은 도메인 메서드). (3) *Controller는 모든 응답을 ApiResponse<T>로 래핑. (4) 도메인 경계: 타 도메인 entity import 금지(Long ID/서비스 호출). 위반이 없으면 아무것도 출력하지 마세요."
   }
 }

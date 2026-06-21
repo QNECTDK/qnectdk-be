@@ -1,17 +1,14 @@
 {
   "enabled": true,
-  "name": "Compile Check on Java Save",
-  "description": "자바 파일 저장 시 ./gradlew compileJava로 컴파일을 점검한다 (DB 불필요).",
-  "version": "1",
+  "name": "Compile Check (Manual)",
+  "description": "수동 실행 시 gradlew compileJava로 컴파일을 점검한다 (DB 불필요). 파일 저장마다 자동 실행하지 않는다.",
+  "version": "2",
   "when": {
-    "type": "fileEdited",
-    "patterns": [
-      "*.java"
-    ]
+    "type": "userTriggered"
   },
   "then": {
     "type": "runCommand",
-    "command": "gradlew.bat compileJava -q --console=plain",
+    "command": "cmd /c gradlew.bat compileJava -q --console=plain",
     "timeout": 180
   }
 }

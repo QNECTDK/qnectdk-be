@@ -15,6 +15,13 @@ Java 21 / **Spring Boot 4.1** / Gradle / MySQL 8 / Spring Security 7 + JWT(jjwt 
 ## 개발 환경
 **WSL/Linux(bash)에서 개발·빌드.** Kiro 훅(`.kiro/hooks/`)은 `gradlew`를 직접 호출한다. PowerShell 훅 금지.
 
+### 훅 정책 (모든 세션에서 절대 준수)
+- **파일 저장(`fileEdited`)마다 자동 컴파일/점검하는 훅 금지.** 컴파일·검수는 **`agentStop`(작업 종료 시 1회)** 또는 **`userTriggered`(수동)** 로만.
+- **`preToolUse`로 매 셸 명령을 가로채는 훅 금지**(매번 실행을 막아 작업 흐름을 끊는다). 커밋 안전 점검은 **`agentStop` 사후 점검**으로.
+- 훅이 필요 없다고 임의로 **삭제하지 말 것** — 트리거(`when.type`)만 바꿔 동작 방식을 조정한다.
+- 훅 `runCommand`는 OS 무관하게 `cmd /c gradlew.bat ...` 형태로 호출(Windows PowerShell에서도 동작).
+- 코드 변경 검증은 매 파일마다 컴파일하지 말고 **여러 수정을 모아 마지막에 한 번** 컴파일한다.
+
 ## 아키텍처 (불변)
 - **도메인형 패키지:** `domain/{name}/{controller·service·repository·entity·dto}`. 레이어를 최상위에 두지 않는다.
 - **도메인 경계 = `Long` ID 참조. 타 도메인 엔티티 import/`@ManyToOne` 금지** (같은 도메인 내부 연관관계만 허용). 타 도메인 정보는 그 도메인의 **service를 호출**해 DTO/ID로 받는다 (예: `ProfileService` → `UserQueryService`).
