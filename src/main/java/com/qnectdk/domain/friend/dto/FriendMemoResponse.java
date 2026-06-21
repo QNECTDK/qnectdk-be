@@ -30,4 +30,9 @@ public record FriendMemoResponse(
                 m.getUpdatedAt()
         );
     }
+
+    /** 아직 작성된 메모가 없을 때(정상 상태) 빈 응답. */
+    public static FriendMemoResponse empty(Long ownerId, Long friendId) {
+      return new FriendMemoResponse(null, ownerId, friendId, null, null);
+    }
 }

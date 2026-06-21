@@ -1,6 +1,5 @@
 package com.qnectdk.domain.group.service;
 
-import com.qnectdk.domain.friend.entity.FriendshipStatus;
 import com.qnectdk.domain.friend.repository.FriendshipRepository;
 import com.qnectdk.domain.group.dto.GroupMemberResponse;
 import com.qnectdk.domain.group.dto.GroupResponse;
@@ -68,7 +67,7 @@ public class GroupService {
         if (friendIds != null) {
             for (Long friendId : friendIds) {
                 boolean isFriend = friendshipRepository
-                        .existsAcceptedBetween(userId, friendId, FriendshipStatus.ACCEPTED);
+                    .existsByOwnerIdAndFriendId(userId, friendId);
                 if (!isFriend) {
                     throw new BusinessException(ErrorCode.NOT_ACCEPTED_FRIEND);
                 }
@@ -132,7 +131,7 @@ public class GroupService {
     public GroupMemberResponse addMember(Long userId, Long groupId, Long friendId) {
         FriendGroup group = getOwnedGroup(userId, groupId);
         boolean isFriend = friendshipRepository
-                .existsAcceptedBetween(userId, friendId, FriendshipStatus.ACCEPTED);
+            .existsByOwnerIdAndFriendId(userId, friendId);
         if (!isFriend) {
             throw new BusinessException(ErrorCode.NOT_ACCEPTED_FRIEND);
         }
