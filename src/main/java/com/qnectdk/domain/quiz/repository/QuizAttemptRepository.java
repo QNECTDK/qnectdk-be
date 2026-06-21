@@ -29,15 +29,4 @@ public interface QuizAttemptRepository extends JpaRepository<QuizAttempt, Long> 
         """)
     List<QuizAttempt> findBySolverAndQuizIdsOrderByIdDesc(
         @Param("solverId") Long solverId, @Param("quizIds") Collection<Long> quizIds);
-
-    // solver 가 owner 의 퀴즈(어떤 세트든)에 남긴 응시 기록(최신순). 케미 점수·뱃지 계산용.
-    @Query("""
-        select a from QuizAttempt a, Quiz q
-        where a.quizId = q.id
-          and a.solverId = :solverId
-          and q.ownerId = :ownerId
-        order by a.id desc
-        """)
-    List<QuizAttempt> findBySolverForOwnerOrderByIdDesc(
-        @Param("solverId") Long solverId, @Param("ownerId") Long ownerId);
 }

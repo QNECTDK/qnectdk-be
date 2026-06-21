@@ -1,7 +1,6 @@
 package com.qnectdk.domain.quiz.controller;
 
 import com.qnectdk.domain.quiz.dto.AiQuizDraftResponse;
-import com.qnectdk.domain.quiz.dto.ChemistryResponse;
 import com.qnectdk.domain.quiz.dto.FriendQuizResponse;
 import com.qnectdk.domain.quiz.dto.QuizAttemptRequest;
 import com.qnectdk.domain.quiz.dto.QuizResponse;
@@ -156,19 +155,5 @@ public class QuizController {
             @AuthenticationPrincipal CustomUserDetails user,
             @Parameter(description = "응시 ID") @PathVariable Long attemptId) {
         return ApiResponse.ok(quizService.getResult(attemptId, user.getUserId()));
-    }
-
-    @Operation(summary = "친구와의 케미 점수·뱃지 조회", description = "내가 친구(ownerId)의 퀴즈를 푼 기록으로 계산한 케미 점수(정답률 %)와 획득 뱃지를 반환한다."
-        + " 한 번도 안 풀었으면 unlocked=false 의 잠금 상태. 본인 대상 조회는 403.")
-    @ApiResponses({
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "요청 성공"),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증 필요 (UNAUTHORIZED)"),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "본인 대상 케미 조회 (QUIZ_FORBIDDEN)")
-    })
-    @GetMapping("/owner/{ownerId}/chemistry")
-    public ApiResponse<ChemistryResponse> getChemistry(
-        @AuthenticationPrincipal CustomUserDetails user,
-        @Parameter(description = "친구(퀴즈 주인) 사용자 ID") @PathVariable Long ownerId) {
-      return ApiResponse.ok(quizService.getChemistry(user.getUserId(), ownerId));
-    }
+      }
 }
