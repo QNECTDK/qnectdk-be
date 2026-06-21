@@ -12,7 +12,7 @@ import java.util.List;
  *
  * <p>친구 ID 목록 조회 전용 시그니처는 B와 합의 필요 — B가 전용 메서드/빈을 제공하면 이 어댑터를 교체한다. // B 합의 필요
  */
-@Component
+@Component("quizFriendQueryAdapter")
 @RequiredArgsConstructor
 public class FriendQueryAdapter implements FriendQueryPort {
 
