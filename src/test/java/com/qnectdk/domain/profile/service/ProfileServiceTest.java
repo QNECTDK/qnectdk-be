@@ -122,19 +122,16 @@ class ProfileServiceTest {
     }
 
     @Test
-    @DisplayName("getCharacters는 카탈로그 17건을 반환한다")
+    @DisplayName("getCharacters는 카탈로그 19건을 반환한다")
     void getCharacters_returns17() {
         List<CharacterResponse> characters = profileService.getCharacters();
 
-        assertThat(characters).hasSize(17);
-        assertThat(characters).allSatisfy(c -> {
-            assertThat(c.characterId()).isNotBlank();
-            assertThat(c.imageUrl()).isNotBlank();
-        });
+        assertThat(characters).hasSize(19);
+        assertThat(characters).allSatisfy(c -> assertThat(c.characterId()).isNotBlank());
     }
 
     @Test
-    @DisplayName("유효한 캐릭터 식별자로 설정하면 imageUrl을 저장하고 반환한다")
+    @DisplayName("유효한 캐릭터 식별자로 설정하면 characterId를 저장하고 반환한다")
     void setCharacterImage_validId_savesAndReturns() {
         Long userId = 4L;
         CharacterImage target = CharacterImage.CHARACTER_07;
@@ -143,7 +140,7 @@ class ProfileServiceTest {
 
         ImageResponse response = profileService.setCharacterImage(userId, target.getCharacterId());
 
-        assertThat(response.imageUrl()).isEqualTo(target.getImageUrl());
+        assertThat(response.characterId()).isEqualTo(target.getCharacterId());
         assertThat(profile.getCharacterId()).isEqualTo(target.getCharacterId());
     }
 

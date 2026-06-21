@@ -63,16 +63,15 @@ class ProfileControllerTest {
     private JwtTokenProvider jwtTokenProvider;
 
     @Test
-    @DisplayName("GET /characters - 인증 사용자는 카탈로그 17종을 반환받고 서비스에 위임된다 (5.2/5.5)")
+    @DisplayName("GET /characters - 인증 사용자는 카탈로그 19종을 반환받고 서비스에 위임된다 (5.2/5.5)")
     void getCharacters_returnsSeventeen() throws Exception {
         when(profileService.getCharacters()).thenReturn(CharacterImage.all());
 
         mockMvc.perform(get("/api/profiles/characters").with(user(AUTH_USER)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success", is(true)))
-                .andExpect(jsonPath("$.data.length()", is(17)))
-                .andExpect(jsonPath("$.data[0].characterId", is("character01")))
-                .andExpect(jsonPath("$.data[0].imageUrl").exists());
+            .andExpect(jsonPath("$.data.length()", is(19)))
+            .andExpect(jsonPath("$.data[0].characterId", is("character01")));
 
         verify(profileService).getCharacters();
     }
@@ -89,11 +88,11 @@ class ProfileControllerTest {
     }
 
     @Test
-    @DisplayName("PUT /me/image - 유효 식별자는 imageUrl을 저장하고 서비스에 위임된다 (6.7)")
+    @DisplayName("PUT /me/image - 유효 식별자는 characterId를 저장하고 서비스에 위임된다 (6.7)")
     void setImage_validIdentifier_delegatesAndReturnsImageUrl() throws Exception {
-        String imageUrl = CharacterImage.CHARACTER_07.getImageUrl();
+      String characterId = CharacterImage.CHARACTER_07.getCharacterId();
         when(profileService.setCharacterImage(eq(1L), eq("character07")))
-                .thenReturn(new ImageResponse(imageUrl));
+            .thenReturn(new ImageResponse(characterId));
 
         mockMvc.perform(put("/api/profiles/me/image")
                         .with(user(AUTH_USER))
@@ -101,7 +100,7 @@ class ProfileControllerTest {
                         .content("{\"characterId\":\"character07\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success", is(true)))
-                .andExpect(jsonPath("$.data.imageUrl", is(imageUrl)));
+            .andExpect(jsonPath("$.data.characterId", is(characterId)));
 
         verify(profileService).setCharacterImage(1L, "character07");
     }

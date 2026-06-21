@@ -32,8 +32,10 @@ public record ProfileResponse(
         String drinkLevel,
         @Schema(description = "좋아하는 음식", example = "치킨")
         String favoriteFood,
-        @Schema(description = "프로필 이미지 URL", example = "http://localhost:8080/files/3f2a1b9c4e.jpg")
+        @Schema(description = "사용자 업로드 사진 URL(현재 업로드 기능 미사용 → 항상 null). 있으면 캐릭터보다 우선 표시")
         String imageUrl,
+        @Schema(description = "캐릭터 식별자(미설정 시 띠 기본 캐릭터). 프론트가 이미지 매핑", example = "character07")
+        String characterId,
         @Schema(description = "QR/공유용 고유 코드", example = "Ab3xYz9Q")
         String publicCode,
         @Schema(description = "온보딩 완료 여부(프로필 작성됨)", example = "true")
@@ -51,6 +53,7 @@ public record ProfileResponse(
                 profile.getMbti(),
                 profile.getDrinkLevel(),
                 profile.getFavoriteFood(),
+                null,
                 ZodiacCharacterUtil.resolve(profile.getCharacterId(), user.birthDate()),
                 user.publicCode(),
                 true
@@ -64,6 +67,7 @@ public record ProfileResponse(
                 AgeUtil.of(user.birthDate()),
                 ZodiacUtil.of(user.birthDate()),
                 null, null, null, null, null,
+                null,
                 ZodiacCharacterUtil.resolve(null, user.birthDate()),
                 user.publicCode(),
                 false

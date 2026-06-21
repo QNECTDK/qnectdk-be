@@ -77,7 +77,7 @@ public class ProfileService {
                 .orElseGet(() -> ProfileResponse.ofUserOnly(user));
     }
 
-    /** 프로필 이미지로 선택 가능한 캐릭터 카탈로그(17종)를 조회한다. */
+    /** 프로필 이미지로 선택 가능한 캐릭터 카탈로그(19종)를 조회한다. */
     public List<CharacterResponse> getCharacters() {
         return CharacterImage.all();
     }
@@ -89,7 +89,17 @@ public class ProfileService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_INPUT));
         Profile profile = getByUserIdOrThrow(userId);
         profile.updateCharacterId(character.getCharacterId());
-        return new ImageResponse(character.getImageUrl());
+        return new ImageResponse(character.getCharacterId());
+      }
+
+      /**
+       * 상점에서 장착한 캐릭터를 프로필에 반영한다(shop → profile 연동).
+       * characterId=null 이면 띠 기본 캐릭터로 되돌린다. 프로필 미작성이면 아무것도 하지 않는다.
+       */
+      @Transactional
+      public void applyCharacter(Long userId, String characterId) {
+        profileRepository.findByUserId(userId)
+            .ifPresent(profile -> profile.updateCharacterId(characterId));
     }
 
     public ProfileResponse getByPublicCode(String publicCode) {
