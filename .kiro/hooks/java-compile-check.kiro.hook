@@ -11,7 +11,7 @@
   },
   "then": {
     "type": "runCommand",
-    "command": "./gradlew compileJava -q --console=plain",
+    "command": "gradlew.bat compileJava -q --console=plain",
     "timeout": 180
   }
 }
