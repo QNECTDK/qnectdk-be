@@ -164,6 +164,17 @@ public class FriendService {
                 .toList();
     }
 
+    /**
+     * friendshipId 로 나(userId)의 상대방 userId 를 찾는다(리마인드 카드 등에서 friendshipId→친구 해석용).
+     * ACCEPTED 상태이고 내가 당사자인 경우에만 상대방을 반환한다.
+     */
+    public java.util.Optional<Long> findCounterpartUserId(Long friendshipId, Long userId) {
+      return friendshipRepository.findById(friendshipId)
+          .filter(f -> f.getStatus() == FriendshipStatus.ACCEPTED)
+          .filter(f -> f.getRequesterId().equals(userId) || f.getAddresseeId().equals(userId))
+          .map(f -> counterpartOf(f, userId));
+    }
+
     public List<FriendSummary> getFriendSummaries(Long userId) {
         List<Long> friendIds = getFriendIds(userId);
 

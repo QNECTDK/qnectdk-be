@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -27,7 +28,7 @@ public class ReminderService {
     // 친구 수락 시 호출 — ownerId(받을 사람)에게 30일 뒤 리마인드 예약
     @Transactional
     public void scheduleReminder(Long friendshipId, Long ownerId, LocalDateTime acceptedAt) {
-        if (reminderRepository.existsByFriendshipIdAndOwnerId(friendshipId, ownerId)) {
+      if (reminderRepository.existsByFriendshipIdAndOwnerId(friendshipId, ownerId)) {
             return;
         }
         LocalDateTime scheduledAt = acceptedAt.plusDays(REMIND_AFTER_DAYS);
@@ -37,7 +38,7 @@ public class ReminderService {
     // 발송 1건 처리
     @Transactional
     public void sendOne(Long reminderId) {
-        QuizReminder reminder = reminderRepository.findById(reminderId).orElse(null);
+      QuizReminder reminder = reminderRepository.findById(reminderId).orElse(null);
         if (reminder == null || reminder.isSent()) {
             return;
         }
@@ -54,5 +55,17 @@ public class ReminderService {
         );
 
         reminder.markSent(quizId);
+    }
+
+    /**
+     * 홈 "이 사람을 기억하나요?" 카드용 — 받는 사람(userId)의 도래한 리마인드의 friendshipId 목록(최신 예정순).
+     * sentAt 여부와 무관하게 도래(scheduledAt &lt;= now)한 것을 반환한다(카드는 발송과 별개로 노출 가능).
+     */
+    public List<Long> findDueFriendshipIds(Long userId) {
+      return reminderRepository
+          .findByOwnerIdAndScheduledAtLessThanEqualOrderByScheduledAtDesc(userId, LocalDateTime.now())
+          .stream()
+          .map(QuizReminder::getFriendshipId)
+          .toList();
     }
 }

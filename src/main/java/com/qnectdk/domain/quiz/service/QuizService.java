@@ -11,11 +11,13 @@ import com.qnectdk.domain.quiz.client.QuizGenerationClient;
 import com.qnectdk.domain.quiz.client.dto.GeneratedQuiz;
 import com.qnectdk.domain.quiz.client.dto.QuizGenerationCommand;
 import com.qnectdk.domain.quiz.dto.AiQuizDraftResponse;
+import com.qnectdk.domain.quiz.dto.ChemistryResponse;
 import com.qnectdk.domain.quiz.dto.QuizAttemptRequest;
 import com.qnectdk.domain.quiz.dto.QuizResponse;
 import com.qnectdk.domain.quiz.dto.QuizResultResponse;
 import com.qnectdk.domain.quiz.dto.QuizSaveRequest;
 import com.qnectdk.domain.quiz.dto.SolvableQuizResponse;
+import com.qnectdk.domain.quiz.entity.ChemistryBadge;
 import com.qnectdk.domain.quiz.entity.QuestionType;
 import com.qnectdk.domain.quiz.entity.Quiz;
 import com.qnectdk.domain.quiz.entity.QuizAnswer;
@@ -201,7 +203,7 @@ public class QuizService {
         if (firstSolve) {
             pointPort.earnQuizFirstSolve(solverId, ownerId, quiz.getId());
         }
-        return new QuizResultResponse(attempt.getId(), quiz.getId(), score, questions.size(), results);
+        return QuizResultResponse.of(attempt.getId(), quiz.getId(), score, questions.size(), results);
     }
 
     /**
@@ -228,11 +230,44 @@ public class QuizService {
                             answer.isCorrect());
                 })
                 .toList();
-        return new QuizResultResponse(
+        return QuizResultResponse.of(
                 attempt.getId(), attempt.getQuizId(), attempt.getScore(), attempt.getTotal(), results);
     }
 
+    /**
+     * 나와 친구(owner) 사이의 케미 점수·뱃지(F-07/F-19). 내가 그 친구 퀴즈를 푼 응시 기록에서 파생 계산한다.
+     * 본인 대상은 QUIZ_FORBIDDEN. 한 번도 안 풀었으면 unlocked=false 의 잠금 상태로 반환한다.
+     */
+    public ChemistryResponse getChemistry(Long viewerId, Long ownerId) {
+      if (ownerId.equals(viewerId)) {
+        throw new BusinessException(ErrorCode.QUIZ_FORBIDDEN);
+      }
+      List<QuizAttempt> attempts = attemptRepository.findBySolverForOwnerOrderByIdDesc(viewerId, ownerId);
+      if (attempts.isEmpty()) {
+        return ChemistryResponse.locked(ownerId);
+      }
+      int latestPercent = percent(attempts.get(0)); // 최신순 정렬 → 첫 항목이 최근 응시
+      int bestPercent = attempts.stream().mapToInt(this::percent).max().orElse(0);
+      boolean perfect = attempts.stream().anyMatch(a -> a.getTotal() > 0 && a.getScore() == a.getTotal());
+
+      List<ChemistryBadge> badges = new ArrayList<>();
+      badges.add(ChemistryBadge.FIRST_SOLVE);
+      if (bestPercent >= CHEMISTRY_MASTER_THRESHOLD) {
+        badges.add(ChemistryBadge.CHEMISTRY_MASTER);
+      }
+      if (perfect) {
+        badges.add(ChemistryBadge.PERFECT_MEMORY);
+      }
+      return ChemistryResponse.of(ownerId, attempts.size(), bestPercent, latestPercent, badges);
+    }
+
     // --- helpers ---
+
+    private static final int CHEMISTRY_MASTER_THRESHOLD = 80;
+
+    private int percent(QuizAttempt attempt) {
+      return attempt.getTotal() == 0 ? 0 : (int) Math.round(attempt.getScore() * 100.0 / attempt.getTotal());
+    }
 
     private boolean isCorrect(QuizQuestion question, String answer) {
         if (answer == null || answer.isBlank()) {

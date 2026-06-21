@@ -52,18 +52,25 @@ public class PointController {
         return ApiResponse.ok(pointService.getMyTransactions(user.getUserId()));
     }
 
-    @Operation(summary = "출석 체크", description = "하루 1회 5P 지급. 이미 출석했으면 earnedToday=false(에러 아님).")
+    @Operation(summary = "출석 체크", description = "하루 1회 5P 지급. 이미 출석했으면 earnedToday=false(에러 아님). streak=현재 연속 출석일(오늘 포함).")
     @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "요청 성공")
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "요청 성공"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증 필요 (UNAUTHORIZED)")
     })
     @PostMapping("/attendance")
     public ApiResponse<AttendanceResult> checkAttendance(
             @AuthenticationPrincipal CustomUserDetails user
     ) {
         boolean earned = attendanceService.checkToday(user.getUserId());
+        int streak = attendanceService.currentStreak(user.getUserId());
         int balance = pointService.getBalance(user.getUserId());
-        return ApiResponse.ok(new AttendanceResult(earned, balance));
+        return ApiResponse.ok(new AttendanceResult(earned, balance, streak));
     }
 
-    public record AttendanceResult(boolean earnedToday, int currentBalance) {}
+    @io.swagger.v3.oas.annotations.media.Schema(description = "출석 체크 결과")
+    public record AttendanceResult(
+        @io.swagger.v3.oas.annotations.media.Schema(description = "오늘 처음 출석해 적립됐는지(이미 했으면 false)", example = "true") boolean earnedToday,
+        @io.swagger.v3.oas.annotations.media.Schema(description = "적립 후 현재 포인트 잔액", example = "305") int currentBalance,
+        @io.swagger.v3.oas.annotations.media.Schema(description = "현재 연속 출석일(오늘 포함, 끊겼으면 0)", example = "31") int streak) {
+    }
 }

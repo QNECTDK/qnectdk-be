@@ -44,7 +44,8 @@ public record DailyStatsResponse(
     public record FriendChoice(
             @Schema(description = "친구 사용자 ID", example = "2") Long userId,
             @Schema(description = "친구 이름", example = "이영희") String name,
-            @Schema(description = "친구의 선택") DailyChoice selected
+        @Schema(description = "친구 캐릭터 식별자(아바타 표시용)", example = "character07") String characterId,
+                @Schema(description = "친구의 선택") DailyChoice selected
     ) {
     }
 }

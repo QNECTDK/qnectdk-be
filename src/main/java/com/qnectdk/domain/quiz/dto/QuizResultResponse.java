@@ -12,8 +12,14 @@ public record QuizResultResponse(
         @Schema(description = "퀴즈 ID", example = "1") Long quizId,
         @Schema(description = "맞힌 개수", example = "3") int score,
         @Schema(description = "총 문항 수", example = "5") int total,
-        @Schema(description = "문항별 채점 결과") List<AnswerResult> answers
+    @Schema(description = "정답률(%) — 케미 점수 근거", example = "60") int scorePercent,
+            @Schema(description = "문항별 채점 결과") List<AnswerResult> answers
 ) {
+
+  public static QuizResultResponse of(Long attemptId, Long quizId, int score, int total, List<AnswerResult> answers) {
+    int percent = total == 0 ? 0 : (int) Math.round(score * 100.0 / total);
+    return new QuizResultResponse(attemptId, quizId, score, total, percent, answers);
+  }
 
     public record AnswerResult(
             @Schema(description = "문항 ID", example = "1") Long questionId,

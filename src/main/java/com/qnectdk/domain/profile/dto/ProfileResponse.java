@@ -8,9 +8,11 @@ import com.qnectdk.global.util.ZodiacCharacterUtil;
 import com.qnectdk.global.util.ZodiacUtil;
 import io.swagger.v3.oas.annotations.media.Schema;
 
+import java.time.LocalDate;
+
 /**
  * 프로필 응답. 나이·띠는 저장하지 않고 사용자 생년월일로 계산해 채운다.
- * 프로필 미작성 시 {@link #ofUserOnly}로 기본정보(name/age/zodiac)만 채우고
+ * 프로필 미작성 시 {@link #ofUserOnly}로 기본정보(name/age/zodiac/birthDate)만 채우고
  * 프로필 필드는 null, profileCompleted=false 로 내려준다.
  */
 public record ProfileResponse(
@@ -18,6 +20,8 @@ public record ProfileResponse(
         Long userId,
         @Schema(description = "이름", example = "홍길동")
         String name,
+        @Schema(description = "생년월일(전체 날짜)", example = "2005-03-16")
+        LocalDate birthDate,
         @Schema(description = "나이(생년월일로 계산)", example = "23")
         int age,
         @Schema(description = "띠(생년월일로 계산)", example = "토끼")
@@ -46,6 +50,7 @@ public record ProfileResponse(
         return new ProfileResponse(
                 user.userId(),
                 user.name(),
+                user.birthDate(),
                 AgeUtil.of(user.birthDate()),
                 ZodiacUtil.of(user.birthDate()),
                 profile.getSchool(),
@@ -64,6 +69,7 @@ public record ProfileResponse(
         return new ProfileResponse(
                 user.userId(),
                 user.name(),
+                user.birthDate(),
                 AgeUtil.of(user.birthDate()),
                 ZodiacUtil.of(user.birthDate()),
                 null, null, null, null, null,

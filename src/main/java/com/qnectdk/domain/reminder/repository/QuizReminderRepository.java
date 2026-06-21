@@ -12,4 +12,8 @@ public interface QuizReminderRepository extends JpaRepository<QuizReminder, Long
 
     // 이 친구 관계 + 받는 사람 조합으로 이미 예약됐는지
     boolean existsByFriendshipIdAndOwnerId(Long friendshipId, Long ownerId);
+
+    // 홈 "이 사람을 기억하나요?" 카드용 — 받는 사람(ownerId)의 도래한 리마인드를 최신 예정순으로.
+    List<QuizReminder> findByOwnerIdAndScheduledAtLessThanEqualOrderByScheduledAtDesc(
+        Long ownerId, LocalDateTime now);
 }

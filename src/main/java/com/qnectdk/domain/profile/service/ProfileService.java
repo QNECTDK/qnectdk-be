@@ -109,6 +109,17 @@ public class ProfileService {
                 .orElseGet(() -> ProfileResponse.ofUserOnly(user));
     }
 
+    /**
+     * userId 로 다른 사용자의 프로필을 조회한다(친구 목록 → 상세 진입용).
+     * 친구가 아니어도 조회는 허용한다(공개 프로필 성격). 미작성 프로필은 기본정보만 채워 내려준다.
+     */
+    public ProfileResponse getByUserId(Long userId) {
+      UserSummary user = userQueryService.getById(userId);
+      return profileRepository.findByUserId(userId)
+          .map(profile -> ProfileResponse.of(profile, user))
+          .orElseGet(() -> ProfileResponse.ofUserOnly(user));
+    }
+
     public ShareResponse getShareInfo(Long userId) {
         UserSummary user = userQueryService.getById(userId);
         return new ShareResponse(user.publicCode(), buildShareUrl(user.publicCode()));
