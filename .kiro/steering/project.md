@@ -4,10 +4,9 @@ Qnect 백엔드 — 대학생 인맥 관리 앱. 두 명이 도메인을 나눠 
 **현재 단계: 개발자 A의 Phase 2~3 → `domain/quiz`(AI 퀴즈) · `domain/daily`(데일리 밸런스 + 친구 통계).**
 
 ## 역할 경계
-- **나(A):** `global/`(완료) + `domain/user·profile·interest`(Phase 1, 완료) + **`domain/quiz·daily`(현재).**
-- **B(건드리지 말 것):** `domain/friend·group`(완료·병합) + 추후 `notification·point` + 리마인드 스케줄러. B 코드를 A 스타일로 리팩터링 금지.
-- **A→B 호출(인터페이스만):** 첫 퀴즈 완료 시 포인트 적립(`PointPort`), 데일리 친구 통계용 친구 ID 목록. 시그니처 미확정이면 합리적으로 가정하고 `// B 합의 필요` 주석.
-- **B→A 노출:** `QuizService.getActiveQuiz(ownerId)` · `generateReminderQuiz(ownerId)` — B의 리마인드 스케줄러가 호출(스케줄러 자체는 A가 안 만든다).
+- **전 도메인 단독 작업.** `global/` + 모든 `domain/*`(user·profile·interest·quiz·daily·friend·group·notification·point·reminder)를 직접 구현·수정한다. 과거 A/B 분담은 종료 — **B 도메인 수정 금지 규칙은 없다.** 리마인드 스케줄러 포함 전 영역을 다룬다.
+- 기존 경계 포트(`PointPort`/`FriendQueryPort` 등)는 순환참조 회피·경계 명확화에 유용하면 유지하되, 불필요하면 직접 service 호출로 단순화해도 된다. (예: `QuizService`는 `ReminderService`가 의존하므로 친구/리마인드 조회를 여기에 직접 넣으면 순환참조가 생긴다 — 별도 빈으로 분리.)
+- 도메인 경계 자체(타 도메인 엔티티 import 금지, service/DTO/ID로만 접근)는 계속 지킨다.
 
 ## 스택 (실제 빌드 기준)
 Java 21 / **Spring Boot 4.1** / Gradle / MySQL 8 / Spring Security 7 + JWT(jjwt 0.12, BCrypt) / Spring Data JPA / Bean Validation / springdoc-openapi 3.x / Lombok. base package `com.qnectdk`.
@@ -34,7 +33,7 @@ Java 21 / **Spring Boot 4.1** / Gradle / MySQL 8 / Spring Security 7 + JWT(jjwt 
 
 ## 금지
 - **임의 커밋 금지.** 사용자가 "커밋해"라 명시할 때만 `git commit`/`--amend`/force-push/`reset --hard`를 수행한다.
-- Phase 1/`global` 코드 임의 수정 금지(연동 필요 시 명시). B 도메인 구현·수정 금지. "더 멋진" 패턴 임의 도입 금지 — 이 문서·컨벤션 steering과 일관성이 최우선.
+- Phase 1/`global` 코드 임의 수정 금지(연동 필요 시 명시). "더 멋진" 패턴 임의 도입 금지 — 이 문서·컨벤션 steering과 일관성이 최우선.
 - **Gemini API 키 클라이언트 노출·하드코딩 절대 금지** — 서버 env(`GEMINI_API_KEY`)만. 미설정 시 Mock 클라이언트로 동작.
 
 ## 빌드 / 실행 / 테스트

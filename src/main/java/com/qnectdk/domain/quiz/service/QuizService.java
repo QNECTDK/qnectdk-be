@@ -201,7 +201,7 @@ public class QuizService {
         if (firstSolve) {
             pointPort.earnQuizFirstSolve(solverId, ownerId, quiz.getId());
         }
-        return new QuizResultResponse(attempt.getId(), quiz.getId(), score, questions.size(), results);
+        return QuizResultResponse.of(attempt.getId(), quiz.getId(), score, questions.size(), results);
     }
 
     /**
@@ -228,7 +228,7 @@ public class QuizService {
                             answer.isCorrect());
                 })
                 .toList();
-        return new QuizResultResponse(
+        return QuizResultResponse.of(
                 attempt.getId(), attempt.getQuizId(), attempt.getScore(), attempt.getTotal(), results);
     }
 

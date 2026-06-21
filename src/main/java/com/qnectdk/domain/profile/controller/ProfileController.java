@@ -83,4 +83,15 @@ public class ProfileController {
             @Parameter(description = "QR/공유용 고유 코드", example = "Ab3xYz9Q") @PathVariable String publicCode) {
         return ApiResponse.ok(profileService.getByPublicCode(publicCode));
     }
+
+    @Operation(summary = "userId로 프로필 조회", description = "userId 로 다른 사용자의 프로필을 조회한다(친구 목록 → 상세 진입용). 생년월일(전체 날짜) 포함.")
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "요청 성공"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "해당 사용자를 찾을 수 없음(USER_NOT_FOUND)")
+    })
+    @GetMapping("/by-user/{userId}")
+    public ApiResponse<ProfileResponse> getByUserId(
+        @Parameter(description = "사용자 ID", example = "34") @PathVariable Long userId) {
+      return ApiResponse.ok(profileService.getByUserId(userId));
+    }
 }

@@ -8,7 +8,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.qnectdk.domain.quiz.service.FriendQuizService;
 import com.qnectdk.domain.quiz.service.QuizService;
+import com.qnectdk.domain.quiz.service.ReminderCardService;
 import com.qnectdk.global.config.SecurityConfig;
 import com.qnectdk.global.security.CustomUserDetails;
 import com.qnectdk.global.security.JwtAccessDeniedHandler;
@@ -38,6 +40,12 @@ class QuizControllerTest {
 
     @MockitoBean
     private QuizService quizService;
+
+    @MockitoBean
+    private FriendQuizService friendQuizService;
+
+    @MockitoBean
+    private ReminderCardService reminderCardService;
 
     @MockitoBean
     private JwtTokenProvider jwtTokenProvider;

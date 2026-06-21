@@ -12,8 +12,8 @@ import com.qnectdk.domain.daily.entity.DailyQuizAnswer;
 import com.qnectdk.domain.daily.port.FriendQueryPort;
 import com.qnectdk.domain.daily.repository.DailyQuizAnswerRepository;
 import com.qnectdk.domain.daily.repository.DailyQuizRepository;
-import com.qnectdk.domain.user.dto.UserSummary;
-import com.qnectdk.domain.user.service.UserQueryService;
+import com.qnectdk.domain.profile.dto.PersonCard;
+import com.qnectdk.domain.profile.service.PersonCardService;
 import com.qnectdk.global.exception.BusinessException;
 import com.qnectdk.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -42,7 +42,7 @@ public class DailyQuizService {
     private final DailyQuizRepository dailyQuizRepository;
     private final DailyQuizAnswerRepository answerRepository;
     private final FriendQueryPort friendQueryPort;
-    private final UserQueryService userQueryService;
+    private final PersonCardService personCardService;
 
     public DailyTodayResponse getToday(Long userId) {
         DailyQuiz quiz = getTodayQuizOrThrow();
@@ -82,15 +82,19 @@ public class DailyQuizService {
         long friendA = friendAnswers.stream().filter(answer -> answer.getSelected() == DailyChoice.A).count();
         long friendB = friendAnswers.stream().filter(answer -> answer.getSelected() == DailyChoice.B).count();
 
-        // 답한 친구 이름을 한 번의 IN 쿼리로 일괄 조회(루프 내 단건 조회 N+1 방지).
+        // 답한 친구의 이름·캐릭터를 한 번의 batch 로 조회(루프 내 단건 조회 N+1 방지).
         List<Long> answeredFriendIds = friendAnswers.stream().map(DailyQuizAnswer::getUserId).toList();
-        Map<Long, String> nameByUserId = userQueryService.getByIds(answeredFriendIds).stream()
-                .collect(Collectors.toMap(UserSummary::userId, UserSummary::name));
+        Map<Long, PersonCard> cardByUserId = personCardService.getCards(userId, answeredFriendIds).stream()
+                .collect(Collectors.toMap(PersonCard::userId, card -> card));
         List<FriendChoice> selections = friendAnswers.stream()
-                .map(answer -> new FriendChoice(
-                        answer.getUserId(),
-                        nameByUserId.getOrDefault(answer.getUserId(), ""),
-                        answer.getSelected()))
+                .map(answer -> {
+                    PersonCard card = cardByUserId.get(answer.getUserId());
+                    return new FriendChoice(
+                            answer.getUserId(),
+                            card != null ? card.name() : "",
+                            card != null ? card.characterId() : null,
+                            answer.getSelected());
+                })
                 .toList();
 
         Distribution friendDistribution = Distribution.of(friendA, friendB);
